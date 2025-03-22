@@ -83,5 +83,3 @@ if __name__ == '__main__':
     tm1 = tm1_connection()
     create_dimensions(tm1)
 
-
-
