@@ -1,74 +1,115 @@
-test_dicionary_for_pd_creation={
-    "type":"consolidated",
-    "level":"level000",
-    "element_name": "All Product",
-    "weight": 1,
-    "children" :
-    [
-        {
-        "type":"consolidated",
-        "level":"level001",
-        "element_name": "Product Group 01",
-        "weight": 1,
-        "children":
-        [
-            {
-                "type":"numeric",
-                "level":"leaf",
-                "element_name": "P0000001",
-                "weight": 1
-            },
-            {
-                "type":"numeric",
-                "level":"leaf",
-                "element_name": "P0000002",
-                "weight": 1
-            },
-            {
-                "type":"consolidated",
-                "level":"level002",
-                "element_name": "Sub categegory 01",
-                "weight": 1,
-                "children":
-                [
-                    {
-                    "type":"numeric",
-                    "level":"leaf",
-                    "element_name": "P0000003",
-                    "weight": 1
-                    }
-                ]
-            }
-        ],
-        },
-        {"type":"consolidated",
-         "level":"level001",
-         "element_name": "Product Group 02",
-         "weight": 1,
-         "children":
-             [
-                {
-                  "type":"numeric",
-                  "level":"leaf",
-                  "element_name": "P0000004",
-                  "weight": 1
-                },
-                {
-                  "type":"numeric",
-                  "level":"leaf",
-                  "element_name": "P0000005",
-                  "weight": 1
-                }
-            ]
-         },
-        {
-          "type":"numeric",
-          "level":"leaf",
-          "element_name": "P0000006",
-          "weight": 1
-       }
-    ]}
-
-test_df_col = ["element_id","element_type","level002","level001","level000","level002_weight","level001_weight","level000_weight"]
-test_df  = pd.DataFrame(columns = test_df_col)
-
+test_nested_dictionary_to_dataframe:
+ -
+  dict: {
+   "type": "consolidated",
+   "level": "level000",
+   "element_name": "All Product",
+   "weight": 1,
+   "children": [
+     {
+       "type": "consolidated",
+       "level": "level001",
+       "element_name": "Product Group 01",
+       "weight": 1,
+       "children":
+         [
+           {
+             "type": "numeric",
+             "level": "leaf",
+             "element_name": "P0000001",
+             "weight": 1
+           },
+           {
+             "type": "numeric",
+             "level": "leaf",
+             "element_name": "P0000002",
+             "weight": 1
+           },
+           {
+             "type": "consolidated",
+             "level": "level002",
+             "element_name": "Sub categegory 01",
+             "weight": 1,
+             "children":
+               [
+                 {
+                   "type": "numeric",
+                   "level": "leaf",
+                   "element_name": "P0000003",
+                   "weight": 1
+                 }
+               ]
+           }
+         ],
+     },
+     { "type": "consolidated",
+       "level": "level001",
+       "element_name": "Product Group 02",
+       "weight": 1,
+       "children":
+         [
+           {
+             "type": "numeric",
+             "level": "leaf",
+             "element_name": "P0000004",
+             "weight": 1
+           },
+           {
+             "type": "numeric",
+             "level": "leaf",
+             "element_name": "P0000005",
+             "weight": 1
+           }
+         ]
+     },
+     {
+       "type": "numeric",
+       "level": "leaf",
+       "element_name": "P0000006",
+       "weight": 1
+     }
+   ]
+  }
+  df_template: {
+    "elements":{
+      "NumberOfElements": 10000,
+      "ElementPrefix": "P",
+      "ElementLength": 8,
+      "Method": "enumerate"
+    },
+    "levels":[
+      {"name": "level000",
+       "constant_content": "All Product" },
+      {"name": "level001",
+       "content_template":
+         {"Prefix": "ProductGroup",
+          "Length": 2,
+          "Method": "random"}
+      },
+      {"name": "level002",
+       "content_template":
+         {"Prefix": "ProductSubCategory",
+          "Length": 2,
+          "Method": "random"}
+      }
+    ],
+    "attributes":[
+      { "name": "AccountType:s",
+        "constant_content": "" },
+      { "name": "Size:s",
+        "constant_list": [ "S"]}
+    ]
+  }
+  df_col : ["element_id","element_type","level000","level001","level002","level000_weight","level001_weight","level002_weight","AccountType:s","Size:s"]
+  test_dic: {
+    "element_id": ["P0000001","P0000002","P0000003","P0000004","P0000005","P0000006"],
+    "element_type":["numeric","numeric","numeric","numeric","numeric","numeric"],
+    "level002":["","","Sub categegory 01","","",""],
+    "level001":["Product Group 01","Product Group 01","Product Group 01","Product Group 02","Product Group 02",""],
+    "level000":["All Product","All Product","All Product","All Product","All Product","All Product"],
+    "level002_weight": [1,1,1,1,1,1],
+    "level001_weight": [1,1,1,1,1,1],
+    "level000_weight": [1,1,1,1,1,1],
+    "AccountType:s": ["","","","","",""],
+    "Size:s": ["S","S","S","S","S","S"]
+   }

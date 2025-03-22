@@ -4,7 +4,9 @@ from TM1py.Exceptions import TM1pyRestException
 import pandas as pd
 from TM1py import TM1Service
 from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube
-
+import utility as utility
+import pytest
+import parametrize_from_file
 
 def tm1_connection():
     """Creates a TM1 connection before tests and closes it after all tests."""
@@ -33,15 +35,15 @@ def create_dimension_from_elementlist(dimension_name,elements_dic,edges,element_
 # generate df for the input https://github.com/cubewise-code/tm1py/blob/master/TM1py/Services/HierarchyService.py in update_or_create_hierarchy_from_dataframe
 def create_dimension_from_dataframe_template(tm1,df_template,dimension_name):
     # Generate hierarchy based on template
-    hierarchy_dict = generate_hierarchy_dictionary(df_template)
+    hierarchy_dict = utility.generate_hierarchy_dictionary(df_template)
     print("\nGenerated Hierarchy Preview:")
-    print_limited_hierarchy(hierarchy_dict)
+    utility._print_limited_nested_dictionary(hierarchy_dict)
 
-    total_elements = count_elements(hierarchy_dict)
+    total_elements = utility._count_nested_dictionary_elements(hierarchy_dict)
     print(f"\nTotal elements in hierarchy: {total_elements}")
 
     # Create the DataFrame
-    result_df = hierarchy_to_dataframe(df_template,hierarchy_dict)
+    result_df = utility.hierarchy_to_dataframe(df_template,hierarchy_dict)
 
     # Display the result
     print(result_df)
@@ -50,6 +52,7 @@ def create_dimension_from_dataframe_template(tm1,df_template,dimension_name):
         element_column="element_id",element_type_column="element_type",verify_unique_elements=True,verify_edges=True,
         unwind_all=True,update_attribute_types=True)
 
+@parametrize_from_file
 def create_dimensions(tm1: TM1Service):
     for i in range(len(_BENCH_DIMENSIONS_TEMPLATE)):
         dimension_name = _BENCH_DIMENSIONS_TEMPLATE[i].get("dimension_name")

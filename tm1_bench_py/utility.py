@@ -4,18 +4,9 @@ import calendar
 import random
 import string
 import pandas as pd
-from TM1py import TM1Service
-
-def tm1_connection():
-    """Creates a TM1 connection before tests and closes it after all tests."""
-    config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.joinpath('config.ini'))
-
-    tm1 = TM1Service(**config['testbench'])
-    return tm1
 
 def generate_time_dimension(year_start, year_end, monthly=0, daily=0, quarterly=0,
-                            start_month_of_the_year=1, YTD=0, YTG=0, attributes=None):
+                            start_month_of_the_year=1, ytd=0, ytg=0, attributes=None):
     """
     Generate a time dimension DataFrame with specified attributes and time periods.
 
@@ -46,9 +37,6 @@ def generate_time_dimension(year_start, year_end, monthly=0, daily=0, quarterly=
         Time dimension DataFrame with all requested periods and attributes
     """
     print("Generating time dimension")
-
-    # Initialize empty list to store date records
-    records = []
 
     # Define the first and last date based on inputs
     start_date = datetime(year_start, start_month_of_the_year, 1)
@@ -131,16 +119,16 @@ def generate_time_dimension(year_start, year_end, monthly=0, daily=0, quarterly=
     df.to_csv('output.csv', index=False, mode='w')
 
     # Add YTD (Year-to-Date) flags if requested
-    if YTD:
+    if ytd:
         df = _add_ytd_attributes(df, start_month_of_the_year)
 
     # Add YTG (Year-to-Go) flags if requested
-    if YTG:
+    if ytg:
         df = _add_ytg_attributes(df, start_month_of_the_year)
 
     # Process custom attributes if provided
     if attributes:
-        df = _process_custom_attributes(df, attributes, start_month_of_the_year)
+        df = _process_custom_attributes(df, attributes)
 
     return df
 
@@ -152,9 +140,6 @@ def _generate_period_key(row, start_month_of_the_year):
 
     # Determine fiscal year
     fiscal_year = date.year if date.month >= start_month_of_the_year else date.year - 1
-
-    # Calculate fiscal period based on period type
-    result = ""
 
     switch_dict = {
         "DAY": f"D{fiscal_year}{date.strftime('%m%d')}",
@@ -237,7 +222,7 @@ def _add_ytg_attributes(df, start_month_of_the_year):
     return df
 
 
-def _process_custom_attributes(df, attributes, start_month_of_the_year):
+def _process_custom_attributes(df, attributes):
     """Process custom attributes based on the provided specifications."""
 
     for attr in attributes:
@@ -253,7 +238,7 @@ def _process_custom_attributes(df, attributes, start_month_of_the_year):
         if attr_method == 'time_reference':
             referenced_distance = attr.get('referenced_period_distance', 0)
             df[attr_name] = df.apply(
-                lambda row: _get_reference_period(df, row, referenced_distance,start_month_of_the_year),
+                lambda row: _get_reference_period(df, row, referenced_distance),
                 axis=1
             )
 
@@ -267,24 +252,20 @@ def _process_custom_attributes(df, attributes, start_month_of_the_year):
     return df
 
 
-def _get_reference_period(df, row, distance,start_month_of_the_year):
+def _get_reference_period(df, row, distance):
     """Get a referenced period based on the current period and distance."""
-    period_key = row['period_key']
     period_type = row['period_type']
     date = row['date']
 
     # For monthly references
     if period_type == 'MONTH':
         reference_date = date + relativedelta(months=distance)
-        gen_date = _generate_period_key(row,start_month_of_the_year)
-        print(reference_date)
         # Find matching row in DataFrame
         matching_rows = df[(df['period_type'] == period_type) &
                            (df['date'] == reference_date.replace(day=1))]
 
     # For quarterly references
     elif period_type == 'QUARTER':
-        reference_date = date + relativedelta(months=3 * distance)
         # Find matching row in DataFrame
         matching_rows = df[(df['period_type'] == period_type) &
                            (df['quarter'] == ((row['quarter'] + distance - 1) % 4) + 1) &
@@ -331,9 +312,8 @@ def _format_date(row, format_pattern):
 
     return result
 
-
-
-
+# helping function to traverse a nested dictionary into a list of rows,
+# where a rows[] element build by all N level element of the hierarchy traversing the path from the root to the element
 def traverse_hierarchy(node, path=None, weights=None, rows=None):
     """
     Recursive function to traverse the hierarchical tree structure.
@@ -387,6 +367,7 @@ def traverse_hierarchy(node, path=None, weights=None, rows=None):
 
     return rows
 
+# generate the element attributes dataframe based on the generation methods
 def generate_element_attributes(attribute_info, num_elements):
     """
     Generate attributes for elements based on attribute info.
@@ -400,9 +381,6 @@ def generate_element_attributes(attribute_info, num_elements):
     """
     attribute_name = attribute_info["name"]
     attribute_type = attribute_name.split(":")[-1] if ":" in attribute_name else "s"  # Default to string
-
-    # Initialize result list
-    values = []
 
     if "constant_content" in attribute_info:
         # Same value for all elements
@@ -418,7 +396,7 @@ def generate_element_attributes(attribute_info, num_elements):
         # Generate values within a range
         min_val = attribute_info["range"]["min"]
         max_val = attribute_info["range"]["max"]
-        if attribute_type == ("n"):  # Integer
+        if attribute_type == "n":  # Integer
             values = [random.randint(min_val, max_val) for _ in range(num_elements)]
         else:  # Default to string representation
             values = [str(random.uniform(min_val, max_val)) for _ in range(num_elements)]
@@ -448,6 +426,8 @@ def generate_element_attributes(attribute_info, num_elements):
 
     return values
 
+# get a hierarchy defined by a nested dictionary and create a dataframe in the expected format of TM1py
+# see expected format:https://github.com/cubewise-code/tm1py/blob/master/TM1py/Services/HierarchyService.py
 def hierarchy_to_dataframe(df_template, hierarchy_dict):
     """
     Convert a hierarchical tree structure (nested dictionary) to a pandas DataFrame.
@@ -499,6 +479,7 @@ def hierarchy_to_dataframe(df_template, hierarchy_dict):
 
     return df
 
+# get a dimension template, then create the defined nested dictionary for the hierarchy representation
 def generate_hierarchy_dictionary(df_template):
     """
     Generate a nested dictionary representing a hierarchical structure based on a template.
@@ -616,8 +597,8 @@ def generate_hierarchy_dictionary(df_template):
             "children": []
         }
 
-# Print a limited version for demonstration
-def print_limited_hierarchy(node, depth=0, max_children=2, max_depth=2):
+# Print a limited version of hierarchical nested dictionary for demonstration
+def _print_limited_nested_dictionary(node, depth=0, max_children=2, max_depth=2):
     """Helper function to print a limited view of the hierarchy for demonstration"""
     indent = "  " * depth
     print(f"{indent}- {node['element_name']} ({node['level']})")
@@ -625,13 +606,13 @@ def print_limited_hierarchy(node, depth=0, max_children=2, max_depth=2):
     if depth < max_depth and 'children' in node and node['children']:
         children_to_print = node['children'][:max_children]
         for child in children_to_print:
-            print_limited_hierarchy(child, depth + 1, max_children, max_depth)
+            _print_limited_nested_dictionary(child, depth + 1, max_children, max_depth)
         if len(node['children']) > max_children:
             print(f"{indent}  ... and {len(node['children']) - max_children} more children")
 
-# Count total elements
-def count_elements(node):
+# Count total elements of a nested dictionary
+def _count_nested_dictionary_elements(node):
     """Helper function to count total elements in the hierarchy"""
     if 'children' not in node or not node['children']:
         return 1
-    return sum(count_elements(child) for child in node['children'])
+    return sum(_count_nested_dictionary_elements(child) for child in node['children'])
