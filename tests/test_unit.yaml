@@ -1,0 +1,74 @@
+test_dicionary_for_pd_creation={
+    "type":"consolidated",
+    "level":"level000",
+    "element_name": "All Product",
+    "weight": 1,
+    "children" :
+    [
+        {
+        "type":"consolidated",
+        "level":"level001",
+        "element_name": "Product Group 01",
+        "weight": 1,
+        "children":
+        [
+            {
+                "type":"numeric",
+                "level":"leaf",
+                "element_name": "P0000001",
+                "weight": 1
+            },
+            {
+                "type":"numeric",
+                "level":"leaf",
+                "element_name": "P0000002",
+                "weight": 1
+            },
+            {
+                "type":"consolidated",
+                "level":"level002",
+                "element_name": "Sub categegory 01",
+                "weight": 1,
+                "children":
+                [
+                    {
+                    "type":"numeric",
+                    "level":"leaf",
+                    "element_name": "P0000003",
+                    "weight": 1
+                    }
+                ]
+            }
+        ],
+        },
+        {"type":"consolidated",
+         "level":"level001",
+         "element_name": "Product Group 02",
+         "weight": 1,
+         "children":
+             [
+                {
+                  "type":"numeric",
+                  "level":"leaf",
+                  "element_name": "P0000004",
+                  "weight": 1
+                },
+                {
+                  "type":"numeric",
+                  "level":"leaf",
+                  "element_name": "P0000005",
+                  "weight": 1
+                }
+            ]
+         },
+        {
+          "type":"numeric",
+          "level":"leaf",
+          "element_name": "P0000006",
+          "weight": 1
+       }
+    ]}
+
+test_df_col = ["element_id","element_type","level002","level001","level000","level002_weight","level001_weight","level000_weight"]
+test_df  = pd.DataFrame(columns = test_df_col)
+
