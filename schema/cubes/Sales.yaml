@@ -1,0 +1,3 @@
+dev:
+  name: "testbenchSales"
+  dimensions: ["testbenchVersion","testbenchPeriod", "testbenchProduct","testbenchCustomer","testbenchKeyAccountManager","testbenchMeasureSales"]

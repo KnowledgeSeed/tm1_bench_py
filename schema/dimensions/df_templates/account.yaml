@@ -1,0 +1,22 @@
+dev:
+  dimension_name: "testbenchAccount"
+  df_template: {
+    "elements":{
+      "NumberOfElements": 100,
+      "ElementPrefix": "",
+      "ElementLength": 8,
+      "Method": "enumerate"
+    },
+    "levels": [
+        {"name": "level000",
+         "constant_content": "All Account"}
+    ],
+    "attributes": [
+        {"name": "StatementType:s",
+         "constant_list": ["PnL"]},
+        {"name": "Type:s",
+         "constant_list": ["Revenue", "CoS","Other Cost","PersonalCost"]},
+        {"name": "Sign:s",
+         "constant_list": ["PnL"]},
+      ]
+  }

@@ -1,0 +1,7 @@
+dev:
+  dimension_name: "testbenchMeasureDiscount"
+  elements: [
+    {"name": "Discount Perc.", "element_type": "Numeric"}]
+  edges:
+  attributes: [
+    {"name": "Format", "attribute_type": "String"}]

@@ -1,0 +1,7 @@
+dev:
+  dimension_name: "testbenchMeasureMappingKeyAccountManagerToOrganizationUnit"
+  elements: [
+    {"name": "Assign Flag", "element_type": "Numeric"}]
+  edges:
+  attributes: [
+    {"name": "Format", "attribute_type": "String"}]

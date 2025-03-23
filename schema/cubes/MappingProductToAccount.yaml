@@ -1,0 +1,3 @@
+dev:
+  name: "testbenchMappingProductToAccount"
+  dimensions: ["testbenchVersion","testbenchProduct","testbenchMeasureSales","testbenchAccount","testbenchMeasureMappingProductToAccount"]
