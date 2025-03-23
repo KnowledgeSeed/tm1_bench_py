@@ -1,0 +1,32 @@
+dev:
+  dimension_name: "testbenchProduct"
+  df_template: {
+    "elements":{
+      "NumberOfElements": 10000,
+      "ElementPrefix": "P",
+      "ElementLength": 8,
+      "Method": "enumerate"
+    },
+    "levels": [
+      { "name": "level000",
+        "constant_content": "All Product" },
+      { "name": "level001",
+        "content_template":
+          { "Prefix": "ProductGroup",
+            "Length": 2,
+            "Method": "enumerate" }
+      },
+      { "name": "level002",
+        "content_template":
+          { "Prefix": "ProductSubCategory",
+            "Length": 2,
+            "Method": "enumerate" }
+      }
+    ],
+    "attributes": [
+     {"name":"AccountType:s",
+      "constant_content":""},
+     {"name":"Size:s",
+      "constant_list": ["S","L","XL"]}
+    ]
+  }

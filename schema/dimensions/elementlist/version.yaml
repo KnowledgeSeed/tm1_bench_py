@@ -1,0 +1,9 @@
+dev:
+  dimension_name: "testbenchVersion"
+  elements: [
+    { "name": "Actual", "element_type": "Numeric" },
+    { "name": "Forecast", "element_type": "Numeric" },
+    { "name": "Budget", "element_type": "Numeric" }]
+  edges:
+  attributes: [
+    {"name": "ShortAlias", "attribute_type": "Alias"}]

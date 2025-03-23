@@ -1,0 +1,21 @@
+dev:
+  dimension_name: "testbenchCustomer"
+  df_template: {
+    "elements":{
+      "NumberOfElements": 100000,
+      "ElementPrefix": "C",
+      "ElementLength": 8,
+      "Method": "enumerate"
+    },
+    "levels": [
+      {"name": "level000",
+       "constant_content": "All Customer"}
+    ],
+    "attributes": [
+        {"name": "CountryOfOrigin:s",
+         "constant_list": [ "HU","SK","CZ","DE","FR","CH","AT","BE","CH","PL","SW","NO","FI","US","CA","MX","BR","AR","AU","JP","NZ" ] },
+        {"name": "Loyalty:s",
+         "constant_list": [ "", "Bronze","Silver","Gold" ]
+        }
+      ]
+  }

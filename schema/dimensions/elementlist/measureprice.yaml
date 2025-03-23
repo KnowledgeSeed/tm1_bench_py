@@ -1,0 +1,10 @@
+dev:
+  dimension_name: "testbenchMeasurePrice"
+  elements: [
+    {"name": "Price", "element_type": "Numeric" },
+    {"name": "Allocated Cost Perc.", "element_type": "Numeric" },
+    {"name": "Production Cost Perc.", "element_type": "Numeric" },
+    {"name": "Transportation and Packaging Perc.", "element_type": "Numeric" }]
+  edges:
+  attributes: [
+    {"name": "Format", "attribute_type": "String"}]
