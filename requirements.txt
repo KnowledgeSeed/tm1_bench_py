@@ -10,3 +10,4 @@ python-dateutil
 python-calendar
 configparser
 pathlib
+yaml

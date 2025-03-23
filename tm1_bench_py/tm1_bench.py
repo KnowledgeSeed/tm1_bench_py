@@ -1,4 +1,3 @@
-from http.cookiejar import time2isoz
 from pathlib import Path
 import configparser
 from TM1py.Exceptions import TM1pyRestException
