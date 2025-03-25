@@ -1,20 +1,29 @@
 dev:
-  - targetCube: "}ElementAttributes_testbenchVersion"
-    rows:
-        mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}"
-    data:
-      ShortAlias:
-        method: "function"
-        callable: _getCapitalLetters
-        kwargs:
-          string: $elementId
+  targetCube: "}ElementAttributes_testbenchVersion"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}*{[testbenchPeriod].[testbenchPeriod].[202401],[testbenchPeriod].[testbenchPeriod].[202402]}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_testbenchVersion"
+  data:
+    ShortAlias:
+      method: "function"
+      callable: df_generator_for_dataset._getCapitalLetters
+      kwargs:
+        apply_on_column: "testbenchVersion"
 unit_test:
-  - targetCube: "}ElementAttributes_testbenchVersion"
-    rows:
-      mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}"
-    data:
-      ShortAlias:
-        method: "function"
-        callable: _getCapitalLetters
-        kwargs:
-          string: $elementId
+  targetCube: "}ElementAttributes_testbenchVersion"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_testbenchVersion"
+  data:
+    ShortAlias:
+      method: "function"
+      callable: df_generator_for_dataset._getCapitalLetters
+      kwargs:
+        apply_on_column: "testbenchVersion"
+    LongAlias:
+      method: "function"
+      callable: df_generator_for_dataset._getCapitalLetters
+      kwargs:
+        apply_on_column: "testbenchVersion"

@@ -1,7 +1,7 @@
 from pathlib import Path
 import configparser
-from TM1py import TM1Service
-from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Rules
+from TM1py import TM1Service, SubsetService
+from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Subset
 import utility as utility
 import os
 import yaml
@@ -232,8 +232,8 @@ if __name__ == '__main__':
     _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
     print(_DEFAULT_DF_TO_CUBE_KWARGS)
     try:
-        create_dimensions(tm1, schema, _ENV)
-        create_cubes(tm1, schema, _ENV)
+        #create_dimensions(tm1, schema, _ENV)
+        #create_cubes(tm1, schema, _ENV)
         pass
     finally:
         tm1.logout()

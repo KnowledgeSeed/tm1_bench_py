@@ -1,20 +1,44 @@
 dev:
-  - targetCube: "}ElementAttributes_testbenchAccount"
-    rows:
-        mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchKeyAccountManager].[testbenchKeyAccountManager])}, 0)}"
-    StatementType:
-      method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.account_type}
-    Type:
-      method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.pnl_account_type}
-    Sign:
-      method: "function"
-      callable: _look_up_based_on_column_value
-      kwargs:
-        referred_column: "Type"
-        lookup_reference: ${variables.account_type.sign}
+  targetCube: "}ElementAttributes_testbenchAccount"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchAccount].[testbenchAccount])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_testbenchAccount"
+  StatementType:
+    method: "function"
+    callable: df_generator_for_dataset._random_from_variable_list
+    kwargs:
+      reference: "variables.account_type"
+  Type:
+    method: "function"
+    callable: df_generator_for_dataset._random_from_variable_list
+    kwargs:
+      reference: "variables.pnl_account_type"
+  Sign:
+    method: "function"
+    callable: df_generator_for_dataset._look_up_based_on_column_value
+    kwargs:
+      referred_column: "Type"
+      lookup_reference: "variables.account_type.sign"
+unit_test:
+  targetCube: "}ElementAttributes_testbenchAccount"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchAccount].[testbenchAccount])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_testbenchAccount"
+  StatementType:
+    method: "function"
+    callable: df_generator_for_dataset._random_from_variable_list
+    kwargs:
+      reference: "variables.account_type"
+  Type:
+    method: "function"
+    callable: df_generator_for_dataset._random_from_variable_list
+    kwargs:
+      reference: "variables.pnl_account_type"
+  Sign:
+    method: "function"
+    callable: df_generator_for_dataset._look_up_based_on_column_value
+    kwargs:
+      referred_column: "Type"
+      lookup_reference: "variables.account_type.sign"
