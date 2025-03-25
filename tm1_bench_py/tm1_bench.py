@@ -178,11 +178,8 @@ def create_cubes(tm1: TM1Service, schema, env):
         print(cube_rules)
         cube = Cube(name=cube_name, dimensions=cube_dimensions)
         tm1.cubes.update_or_create(cube)
-        rule_list = []
-        for i in range(len(cube_rules)):
-            rule_list.append(cube_rules[i])
-        if not cube_dimensions == []:
-            tm1.cubes.update_or_create_rules(cube_name=cube_name, rules=rule_list)
+        rule_str = '\r\n'.join(cube_rules) + '\r\n'
+        tm1.cubes.update_or_create_rules(cube_name=cube_name, rules=rule_str)
 
 if __name__ == '__main__':
     # Get the directory where your script is located
@@ -198,7 +195,7 @@ if __name__ == '__main__':
     tm1 = tm1_connection()
     env = "dev"
     try:
-        #create_dimensions(tm1, schema, env)
+        create_dimensions(tm1, schema, env)
         create_cubes(tm1, schema, env)
     finally:
         tm1.logout()

@@ -3,14 +3,15 @@ dev:
   dimensions: ["testbenchVersion","testbenchPeriod", "testbenchProduct","testbenchCustomer","testbenchKeyAccountManager","testbenchMeasureSales"]
   rules: [
     "SKIPCHECK;",
-    "['Price'] = N: DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Price');",
-    "['Price'] = C: ['Sales'] \ ['Quantity'];",
+    "['Price'] = N: DB('testbenchPrice', !testbenchVersion, !testbenchProduct,!testbenchPeriod, 'Price');",
+    "['Price'] = C: ['Revenue'] \\ ['Quantity'];",
     "['Revenue'] = N: ['Quantity'] * ['Price'];",
-    "['Cost od Sold Goods'] = N: ['Revenue'] * DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Allocated Cost Perc.');",
-    "['Allocated Cost'] = N: ['Revenue'] * DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Production Cost Perc.');",
-    "['Margin'] = N: ['Revenue'] * DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Transportation and Packaging Perc.');",
-    "['Discount'] = N: ['Sales'] * Db('tm1benchDiscount', !tm1benchVersion, !tm1benchCustomer,!tm1benchMonth, 'Discount Perc.');",
-    "['Discount %'] = C: ['Discount'] \ ['Sales'];",
+    "['Cost od Sold Goods'] = N: ['Revenue'] * DB('testbenchPrice', !testbenchVersion, !testbenchProduct,!testbenchPeriod, 'Production Cost Perc.');",
+    "['Allocated Cost'] = N: ['Revenue'] * DB('testbenchPrice', !testbenchVersion, !testbenchProduct,!testbenchPeriod, 'Allocated Cost Perc.');",
+    "['Transportation and Packaging Cost'] = N: ['Revenue'] * DB('testbenchPrice', !testbenchVersion, !testbenchProduct,!testbenchPeriod, 'Transportation and Packaging Perc.');",
+    "['Margin'] = N: ['Revenue'] - ['Cost od Sold Goods'] - ['Allocated Cost'] - ['Transportation and Packaging Cost'];",
+    "['Discount'] = N: ['Revenue'] * Db('testbenchDiscount', !testbenchVersion, !testbenchCustomer,!testbenchPeriod, 'Discount Perc.');",
+    "['Discount Perc.'] = ['Discount'] \\ ['Revenue'];",
     "FEEDERS;",
-    "['Quantity']=>['Sales'],['Discount'],['Cost od Sold Goods'],['Allocated Cost'], ['Margin'];"
+    "['Quantity']=>['Revenue'],['Discount'],['Cost od Sold Goods'],['Allocated Cost'], ['Margin'];"
   ]
