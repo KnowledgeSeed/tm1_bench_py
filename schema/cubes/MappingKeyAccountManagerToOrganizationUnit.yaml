@@ -1,3 +1,4 @@
 dev:
   name: "testbenchMappingKeyAccountManagerToOrganizationUnit"
   dimensions: ["testbenchVersion","testbenchPeriod","testbenchOrganizationUnit","testbenchKeyAccountManager","testbenchMeasureMappingKeyAccountManagerToOrganizationUnit"]
+  rules: [""]

@@ -1,3 +1,4 @@
 dev:
   name: "testbenchPnL"
   dimensions: ["testbenchVersion","testbenchPeriod", "testbenchOrganizationUnit","testbenchAccount","testbenchMeasurePnL"]
+  rules: [""]

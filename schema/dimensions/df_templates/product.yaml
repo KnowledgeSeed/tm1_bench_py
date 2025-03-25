@@ -23,10 +23,5 @@ dev:
             "Method": "enumerate" }
       }
     ],
-    "attributes": [
-     {"name":"AccountType:s",
-      "constant_content":""},
-     {"name":"Size:s",
-      "constant_list": ["S","L","XL"]}
-    ]
+    "attributes": ["AccountType:s","Size:s"]
   }

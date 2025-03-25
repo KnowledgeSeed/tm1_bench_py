@@ -11,12 +11,5 @@ dev:
         {"name": "level000",
          "constant_content": "All Account"}
     ],
-    "attributes": [
-        {"name": "StatementType:s",
-         "constant_list": ["PnL"]},
-        {"name": "Type:s",
-         "constant_list": ["Revenue", "CoS","Other Cost","PersonalCost"]},
-        {"name": "Sign:s",
-         "constant_list": ["PnL"]},
-      ]
+    "attributes": ["StatementType:s","Type:s","Sign:s"]
   }

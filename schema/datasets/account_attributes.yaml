@@ -1,0 +1,18 @@
+dev:
+  - targetCube: "}ElementAttributes_testbenchAccount"
+    StatementType:
+      method: "function"
+      callable: _random_from_variable_list
+      kwargs:
+        reference: ${variables.account_type}
+    Type:
+      method: "function"
+      callable: _random_from_variable_list
+      kwargs:
+        reference: ${variables.pnl_account_type}
+    Sign:
+      method: "function"
+      callable: _look_up_based_on_column_value
+      kwargs:
+        referred_column: "Type"
+        lookup_reference: ${variables.account_type.sign}

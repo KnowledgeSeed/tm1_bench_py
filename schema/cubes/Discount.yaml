@@ -1,3 +1,4 @@
 dev:
   name: "testbenchDiscount"
   dimensions: ["testbenchVersion","testbenchPeriod", "testbenchCustomer","testbenchMeasureDiscount"]
+  rules: [""]

@@ -30,8 +30,12 @@ def tm1_connection():
 def test_nested_dictionary_to_dataframe(dict, df_template, df_col, test_dic):
     dataframe = pd.DataFrame.from_dict(test_dic, orient='columns')
     result_df = utility.hierarchy_to_dataframe(df_template,dict)
-    result_col = list(result_df)
-    if result_col == df_col:
-        print('Result column structure matching')
-    if result_df.equals(dataframe):
-        print('Result dataframe structure matching')
+    pd.testing.assert_frame_equal(result_df, dataframe)
+
+#test simple monhtly creation
+@parametrize_from_file
+def test_period_creation_with_custom_function(parameters, expected_df_data, expected_df_columns):
+    df = utility.generate_time_dimension(**parameters)
+    expected_df = pd.DataFrame(expected_df_data, columns=expected_df_columns)
+    expected_df = utility._create_typed_period_dataframe(expected_df)
+    pd.testing.assert_frame_equal(df, expected_df)

@@ -93,23 +93,56 @@ test_nested_dictionary_to_dataframe:
           "Method": "random"}
       }
     ],
-    "attributes":[
-      { "name": "AccountType:s",
-        "constant_content": "" },
-      { "name": "Size:s",
-        "constant_list": [ "S"]}
-    ]
+    "attributes":["AccountType:s","Size:s"]
   }
   df_col : ["element_id","element_type","level000","level001","level002","level000_weight","level001_weight","level002_weight","AccountType:s","Size:s"]
   test_dic: {
     "element_id": ["P0000001","P0000002","P0000003","P0000004","P0000005","P0000006"],
     "element_type":["numeric","numeric","numeric","numeric","numeric","numeric"],
-    "level002":["","","Sub categegory 01","","",""],
-    "level001":["Product Group 01","Product Group 01","Product Group 01","Product Group 02","Product Group 02",""],
     "level000":["All Product","All Product","All Product","All Product","All Product","All Product"],
-    "level002_weight": [1,1,1,1,1,1],
-    "level001_weight": [1,1,1,1,1,1],
+    "level001":["Product Group 01","Product Group 01","Product Group 01","Product Group 02","Product Group 02",""],
+    "level002":["","","Sub categegory 01","","",""],
     "level000_weight": [1,1,1,1,1,1],
+    "level001_weight": [1,1,1,1,1,1],
+    "level002_weight": [1,1,1,1,1,1],
     "AccountType:s": ["","","","","",""],
-    "Size:s": ["S","S","S","S","S","S"]
+    "Size:s": ["","","","","",""]
    }
+
+test_period_creation_with_custom_function:
+  -
+    parameters: {
+      "year_start": 2025,
+      "year_end": 2025,
+      "monthly": 1,
+      "daily": 0,
+      "quarterly": 0,
+      "start_month_of_the_year": 1,
+      "ytd": 0,
+      "ytg":0,
+      "attributes": [
+        {"name": "PREV_PERIOD:s",
+         "type": "String",
+         "method": "time_reference",
+         "referenced_period_distance": -1}]
+    }
+    expected_df_columns: [
+    'date:s', 'period_type:s', 'date_key:a', 'year:s', 'month:s', 'month_name:s',
+    'month_short_name:s', 'quarter:s', 'fiscal_year:s', 'period_key:a',
+    'last_day_of_month:s', 'PREV_PERIOD:s', 'level000', 'level000_weight',
+    'level001', 'level001_weight', 'level002', 'level002_weight'
+    ]
+    expected_df_data: [
+        ['2025-01-01', 'MONTH', '2025-01', 2025.0, 1.0, 'January', 'Jan', 1.0, 2025.0, 'M202501', 31.0, '', 'All Periods', 0, 2025, 1, '2025Q1', 1],
+        ['2025-02-01', 'MONTH', '2025-02', 2025.0, 2.0, 'February', 'Feb', 1.0, 2025.0, 'M202502', 28.0, 'M202501', 'All Periods', 0, 2025, 1, '2025Q1', 1],
+        ['2025-03-01', 'MONTH', '2025-03', 2025.0, 3.0, 'March', 'Mar', 1.0, 2025.0, 'M202503', 31.0, 'M202502', 'All Periods', 0, 2025, 1, '2025Q1', 1],
+        ['2025-04-01', 'MONTH', '2025-04', 2025.0, 4.0, 'April', 'Apr', 2.0, 2025.0, 'M202504', 30.0, 'M202503', 'All Periods', 0, 2025, 1, '2025Q2', 1],
+        ['2025-05-01', 'MONTH', '2025-05', 2025.0, 5.0, 'May', 'May', 2.0, 2025.0, 'M202505', 31.0, 'M202504', 'All Periods', 0, 2025, 1, '2025Q2', 1],
+        ['2025-06-01', 'MONTH', '2025-06', 2025.0, 6.0, 'June', 'Jun', 2.0, 2025.0, 'M202506', 30.0, 'M202505', 'All Periods', 0, 2025, 1, '2025Q2', 1],
+        ['2025-07-01', 'MONTH', '2025-07', 2025.0, 7.0, 'July', 'Jul', 3.0, 2025.0, 'M202507', 31.0, 'M202506', 'All Periods', 0, 2025, 1, '2025Q3', 1],
+        ['2025-08-01', 'MONTH', '2025-08', 2025.0, 8.0, 'August', 'Aug', 3.0, 2025.0, 'M202508', 31.0, 'M202507', 'All Periods', 0, 2025, 1, '2025Q3', 1],
+        ['2025-09-01', 'MONTH', '2025-09', 2025.0, 9.0, 'September', 'Sep', 3.0, 2025.0, 'M202509', 30.0, 'M202508', 'All Periods', 0, 2025, 1, '2025Q3', 1],
+        ['2025-10-01', 'MONTH', '2025-10', 2025.0, 10.0, 'October', 'Oct', 4.0, 2025.0, 'M202510', 31.0, 'M202509', 'All Periods', 0, 2025, 1, '2025Q4', 1],
+        ['2025-11-01', 'MONTH', '2025-11', 2025.0, 11.0, 'November', 'Nov', 4.0, 2025.0, 'M202511', 30.0, 'M202510', 'All Periods', 0, 2025, 1, '2025Q4', 1],
+        ['2025-12-01', 'MONTH', '2025-12', 2025.0, 12.0, 'December', 'Dec', 4.0, 2025.0, 'M202512', 31.0, 'M202511', 'All Periods', 0, 2025, 1, '2025Q4', 1]
+    ]

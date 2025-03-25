@@ -72,12 +72,12 @@
 
     "loggers": {
         "TM1_bench_py": {
-            "level": "WARNING",
+            "level": "INFO",
             "handlers": ["console", "file", "json_file"],
             "propagate": false
         },
         "exec_metrics": {
-            "level": "WARNING",
+            "level": "DEBUG",
             "handlers": ["file_exec_metrics", "json_file_exec_metrics"],
             "propagate": false
         }

@@ -3,12 +3,14 @@ import configparser
 from TM1py.Exceptions import TM1pyRestException
 import pandas as pd
 from TM1py import TM1Service
-from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube
+from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Rules
 import utility as utility
 import os
 import yaml
 import importlib
 from typing import Dict, List, Any, Callable
+from TM1_bedrock_py import basic_logger
+
 
 def tm1_connection():
     """Creates a TM1 connection before tests and closes it after all tests."""
@@ -61,12 +63,10 @@ class SchemaLoader:
                 self.dimensions['df_templates'][dim_name] = yaml.safe_load(f)
 
         # Load custom dimensions
-        for dim_file in dimension_refs.get('custom', []):
-            path = os.path.join(self.schema_dir, 'dimensions', 'custom', f"{dim_file}.yaml")
+        for dim_name in dimension_refs.get('custom', []):
+            path = os.path.join(self.schema_dir, 'dimensions', 'custom', f"{dim_name}.yaml")
             with open(path, 'r') as f:
-                custom_dims = yaml.safe_load(f)
-                for dim in custom_dims.get('dimensions', []):
-                    self.dimensions['custom'][dim['name']] = dim
+                self.dimensions['custom'][dim_name] = yaml.safe_load(f)
 
     def _load_cubes(self, cube_refs: Dict[str, List[str]]) -> None:
         """Load all cube definitions by type"""
@@ -87,6 +87,7 @@ class SchemaLoader:
         return generator_class
 
 # generate from Tm1 element, Hierarchy and Dimension Object a dimension
+@utility.log_exec_metrics
 def create_dimension_from_elementlist(dimension_name,elements_dic,edges,element_attributes_dic,tm1):
     elements = []
     for i in range(len(elements_dic)):
@@ -103,29 +104,30 @@ def create_dimension_from_elementlist(dimension_name,elements_dic,edges,element_
     tm1.dimensions.update_or_create(dimension)
 
 # generate df for the input https://github.com/cubewise-code/tm1py/blob/master/TM1py/Services/HierarchyService.py in update_or_create_hierarchy_from_dataframe
+@utility.log_exec_metrics
 def create_dimension_from_dataframe_template(tm1,df_template,dimension_name):
     # Generate hierarchy based on template
     hierarchy_dict = utility.generate_hierarchy_dictionary(df_template)
-    print("\nGenerated Hierarchy Preview:")
-    utility._print_limited_nested_dictionary(hierarchy_dict)
 
+    #this will print only if debug is the logging mode
+    utility._print_limited_nested_dictionary(hierarchy_dict)
     total_elements = utility._count_nested_dictionary_elements(hierarchy_dict)
-    print(f"\nTotal elements in hierarchy: {total_elements}")
+    basic_logger.info(f"\nTotal elements in hierarchy: {total_elements}")
 
     # Create the DataFrame
     result_df = utility.hierarchy_to_dataframe(df_template,hierarchy_dict)
 
-    # Display the result
-    print(result_df)
     tm1.hierarchies.update_or_create_hierarchy_from_dataframe(
         dimension_name=dimension_name,hierarchy_name=dimension_name,df=result_df,
-        element_column="element_id",element_type_column="element_type",verify_unique_elements=True,verify_edges=True,
-        unwind_all=True,update_attribute_types=True)
+        element_column="element_id",element_type_column="element_type",verify_unique_elements=True,verify_edges=True)
 
+@utility.log_exec_metrics
 def create_dimensions(tm1: TM1Service, schema, env):
     for template_type in schema['dimensions']:
         for dimension in schema['dimensions'][template_type]:
             dimension_name = schema['dimensions'][template_type][dimension][env]['dimension_name']
+            basic_logger.info(f" {dimension_name} is creating..." )
+            print(dimension_name)
             match template_type:
                 case "elementlist":
                     edges = schema['dimensions'][template_type][dimension][env]['edges']
@@ -146,17 +148,41 @@ def create_dimensions(tm1: TM1Service, schema, env):
                     tm1=tm1,
                     df_template = schema['dimensions'][template_type][dimension][env]['df_template']
                     )
-                case "function":
+                case "custom":
                     func = schema['dimensions'][template_type][dimension][env]['callable']
                     kwargs = schema['dimensions'][template_type][dimension][env]['kwargs']
-                    time_dim = func(**kwargs)
+                    if isinstance(func, str):
+                        try:
+                            # Split the string into module and function name
+                            module_name, func_name = func.rsplit('.', 1)
+                            module = importlib.import_module(module_name)
+                            func = getattr(module, func_name)
+                            basic_logger.info(f"Successfully resolved function: {func}")
+                            result_df = func(**kwargs)
+                            tm1.hierarchies.update_or_create_hierarchy_from_dataframe(
+                                dimension_name=dimension_name, hierarchy_name=dimension_name, df=result_df,
+                                element_column="element_id", element_type_column="element_type",
+                                verify_unique_elements=True,
+                                verify_edges=True)
+                        except Exception as e:
+                            basic_logger.info(f"Error resolving function: {e}")
+                            raise
+            basic_logger.info(f" {dimension_name} is created.")
 
+@utility.log_exec_metrics
 def create_cubes(tm1: TM1Service, schema, env):
     for cubes in schema['cubes']:
         cube_name = schema['cubes'][cubes][env]['name']
         cube_dimensions = schema['cubes'][cubes][env]['dimensions']
+        cube_rules = schema['cubes'][cubes][env]['rules']
+        print(cube_rules)
         cube = Cube(name=cube_name, dimensions=cube_dimensions)
         tm1.cubes.update_or_create(cube)
+        rule_list = []
+        for i in range(len(cube_rules)):
+            rule_list.append(cube_rules[i])
+        if not cube_dimensions == []:
+            tm1.cubes.update_or_create_rules(cube_name=cube_name, rules=rule_list)
 
 if __name__ == '__main__':
     # Get the directory where your script is located
@@ -171,6 +197,8 @@ if __name__ == '__main__':
 
     tm1 = tm1_connection()
     env = "dev"
-    #create_dimensions(tm1, schema, env)
-    create_cubes(tm1, schema, env)
-
+    try:
+        #create_dimensions(tm1, schema, env)
+        create_cubes(tm1, schema, env)
+    finally:
+        tm1.logout()

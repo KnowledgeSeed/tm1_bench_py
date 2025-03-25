@@ -1,3 +1,16 @@
 dev:
   name: "testbenchSales"
   dimensions: ["testbenchVersion","testbenchPeriod", "testbenchProduct","testbenchCustomer","testbenchKeyAccountManager","testbenchMeasureSales"]
+  rules: [
+    "SKIPCHECK;",
+    "['Price'] = N: DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Price');",
+    "['Price'] = C: ['Sales'] \ ['Quantity'];",
+    "['Revenue'] = N: ['Quantity'] * ['Price'];",
+    "['Cost od Sold Goods'] = N: ['Revenue'] * DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Allocated Cost Perc.');",
+    "['Allocated Cost'] = N: ['Revenue'] * DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Production Cost Perc.');",
+    "['Margin'] = N: ['Revenue'] * DB('tm1benchPrice', !tm1benchVersion, !tm1benchProduct,!tm1benchPeriod, 'Transportation and Packaging Perc.');",
+    "['Discount'] = N: ['Sales'] * Db('tm1benchDiscount', !tm1benchVersion, !tm1benchCustomer,!tm1benchMonth, 'Discount Perc.');",
+    "['Discount %'] = C: ['Discount'] \ ['Sales'];",
+    "FEEDERS;",
+    "['Quantity']=>['Sales'],['Discount'],['Cost od Sold Goods'],['Allocated Cost'], ['Margin'];"
+  ]

@@ -1,0 +1,7 @@
+dev:
+  - targetCube: "}ElementAttriburtes_testbenchVersion"
+    ShortAlias:
+      method: "function"
+      callable: _getCapitalLetters
+      kwargs:
+        string: $elementId

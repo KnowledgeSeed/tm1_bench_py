@@ -52,7 +52,7 @@ dev:
     - ["APAC", "Company20", 1]
     - ["APAC", "Company21", 1]
   attributes: [
-    {"name": "Name Long", "attribute_type": "Alias"},
+    {"name": "NameLong", "attribute_type": "Alias"},
     {"name": "Country", "attribute_type": "Alias"},
     {"name": "Currency", "attribute_type": "Alias"}
   ]

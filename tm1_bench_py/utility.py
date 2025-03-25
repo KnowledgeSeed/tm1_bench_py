@@ -2,9 +2,66 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import calendar
 import random
+import os
+import functools
+import time
 import string
 import pandas as pd
+from tm1_bench_py import exec_metrics_logger, basic_logger
 
+# ------------------------------------------------------------------------------------------------------------
+# Utility: Logging helper functions
+# ------------------------------------------------------------------------------------------------------------
+
+
+def execution_metrics_logger(func, *args, **kwargs):
+    """Measures and logs the runtime of any function."""
+    start_time = time.perf_counter()
+    result = func(*args, **kwargs)
+    exec_id = kwargs.get("_execution_id")
+
+    if exec_id is None:
+        exec_id = 0
+
+    end_time = time.perf_counter()
+    execution_time = end_time - start_time
+    exec_metrics_logger.debug(f"exec_time {execution_time:.2f} s", extra={
+        "func": func.__name__,
+        "fileName": os.path.basename(func.__code__.co_filename),
+        "exec_id": f"exec_id {exec_id}"
+    })
+
+    return result
+
+
+def log_exec_metrics(func):
+    """Decorator to measure function execution time."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return execution_metrics_logger(func, *args, **kwargs)
+    return wrapper
+
+
+def set_logging_level(logging_level: str):
+    basic_logger.setLevel(logging_level)
+    exec_metrics_logger.setLevel(logging_level)
+
+# ------------------------------------------------------------------------------------------------------------
+# Utility: PERIOD DIMENSION SPECIAL GENERATOR
+# ------------------------------------------------------------------------------------------------------------
+DTYPE_MAPPING = {
+    'date:s': 'string',
+    'period_type:s': 'string',
+    'date_key:a': 'string',
+    'year:s': 'float32',
+    'month:s': 'float32',
+    'month_name:s': 'string',
+    'month_short_name:s': 'string',
+    'quarter:s': 'float32',
+    'fiscal_year:s': 'float32',
+    'period_key:a': 'string',
+    'last_day_of_month:s': 'float32'
+}
 def generate_time_dimension(year_start, year_end, monthly=0, daily=0, quarterly=0,
                             start_month_of_the_year=1, ytd=0, ytg=0, attributes=None):
     """
@@ -36,7 +93,7 @@ def generate_time_dimension(year_start, year_end, monthly=0, daily=0, quarterly=
     pandas.DataFrame
         Time dimension DataFrame with all requested periods and attributes
     """
-    print("Generating time dimension")
+    basic_logger.info("Generating time dimension")
 
     # Define the first and last date based on inputs
     start_date = datetime(year_start, start_month_of_the_year, 1)
@@ -115,9 +172,6 @@ def generate_time_dimension(year_start, year_end, monthly=0, daily=0, quarterly=
         axis=1
     )
 
-    print(df)
-    df.to_csv('output.csv', index=False, mode='w')
-
     # Add YTD (Year-to-Date) flags if requested
     if ytd:
         df = _add_ytd_attributes(df, start_month_of_the_year)
@@ -125,12 +179,35 @@ def generate_time_dimension(year_start, year_end, monthly=0, daily=0, quarterly=
     # Add YTG (Year-to-Go) flags if requested
     if ytg:
         df = _add_ytg_attributes(df, start_month_of_the_year)
-
+        
     # Process custom attributes if provided
     if attributes:
         df = _process_custom_attributes(df, attributes)
 
-    return df
+    # turn col names into tm1py comply with format
+    dataframe = pd.DataFrame()
+    dataframe = dataframe.assign(
+                    element_id=df['period_key'].astype(str).str[1:],
+                    element_type="numeric")
+    dataframe = pd.concat([dataframe,_rename_columns(df)], axis=1)
+    # add columns for tm1py comform dataframe structures
+    dataframe['level000'] = 'All Periods'
+    dataframe['level000_weight'] = 0
+    dataframe['level001'] = df['year']
+    dataframe['level001_weight'] = 1
+    dataframe['level002'] = df['year'].astype(str) + 'Q' + df['quarter'].astype(str)
+    dataframe['level002_weight'] = 1
+    if daily:
+        dataframe['level003'] = df['month_name']
+        dataframe['level003_weight'] = 1
+    # change data col into string
+    # Define column types
+
+    dataframe = _create_typed_dimension_dataframe(dataframe,DTYPE_MAPPING)
+
+    basic_logger.info("Generating time dimension finished.")
+    print(dataframe)
+    return dataframe
 
 
 def _generate_period_key(row, start_month_of_the_year):
@@ -252,6 +329,46 @@ def _process_custom_attributes(df, attributes):
     return df
 
 
+def _rename_columns(df):
+    # Get current column names
+    columns = df.columns.tolist()
+
+    # Columns to exclude from renaming
+    exclude_columns = [col for col in columns if col.startswith('level') or ':' in col]
+
+    # Create a new dictionary of column names
+    new_columns = {}
+    for col in columns:
+        # Skip columns that are already in the desired format or start with 'level'
+        if col in exclude_columns:
+            continue
+
+        # Rename to column_name:s format
+        if 'key' in col:
+            new_columns[col] = f"{col}:a"
+        else:
+            new_columns[col] = f"{col}:s"
+
+    # Rename the columns
+    df = df.rename(columns=new_columns)
+
+    return df
+
+
+def _create_typed_dimension_dataframe(df,dtype_mapping):
+    columns = df.columns.tolist()
+    # Convert to appropriate types
+    for col in columns:
+        if col in dtype_mapping:
+            df[col] = df[col].fillna('').astype(dtype_mapping[col])
+        elif ':n' in col or 'weight' in col:
+            df[col] = df[col].fillna(0).astype('float32')
+        elif ':s' in col or ':a' in col or 'level' in col:
+            df[col] = df[col].fillna('').astype('string')
+
+    return df
+
+
 def _get_reference_period(df, row, distance):
     """Get a referenced period based on the current period and distance."""
     period_type = row['period_type']
@@ -312,6 +429,10 @@ def _format_date(row, format_pattern):
 
     return result
 
+# ------------------------------------------------------------------------------------------------------------
+# Utility: df_template generation helping functions
+# ------------------------------------------------------------------------------------------------------------
+
 # helping function to traverse a nested dictionary into a list of rows,
 # where a rows[] element build by all N level element of the hierarchy traversing the path from the root to the element
 def traverse_hierarchy(node, path=None, weights=None, rows=None):
@@ -368,7 +489,7 @@ def traverse_hierarchy(node, path=None, weights=None, rows=None):
     return rows
 
 # generate the element attributes dataframe based on the generation methods
-def generate_element_attributes(attribute_info, num_elements):
+def _generate_element_attributes(attribute_name, num_elements):
     """
     Generate attributes for elements based on attribute info.
 
@@ -379,50 +500,17 @@ def generate_element_attributes(attribute_info, num_elements):
     Returns:
     list: List of attribute values
     """
-    attribute_name = attribute_info["name"]
+
     attribute_type = attribute_name.split(":")[-1] if ":" in attribute_name else "s"  # Default to string
 
-    if "constant_content" in attribute_info:
+    if attribute_type == "n":
         # Same value for all elements
-        constant_value = attribute_info["constant_content"]
-        values = [constant_value] * num_elements
-
-    elif "constant_list" in attribute_info:
+        values = [0] * num_elements
+    elif attribute_type == "s" or attribute_type == "a":
         # Randomly select from list for each element
-        options = attribute_info["constant_list"]
-        values = [random.choice(options) for _ in range(num_elements)]
-
-    elif "range" in attribute_info:
-        # Generate values within a range
-        min_val = attribute_info["range"]["min"]
-        max_val = attribute_info["range"]["max"]
-        if attribute_type == "n":  # Integer
-            values = [random.randint(min_val, max_val) for _ in range(num_elements)]
-        else:  # Default to string representation
-            values = [str(random.uniform(min_val, max_val)) for _ in range(num_elements)]
-
-    elif "template" in attribute_info:
-        # Generate based on template
-        template = attribute_info["template"]
-        prefix = template.get("Prefix", "")
-        length = template.get("Length", 5)
-
-        if template.get("Method") == "random":
-            # Random characters
-            chars = string.ascii_uppercase + string.digits if attribute_type == "s" else string.digits
-            values = [f"{prefix}{''.join(random.choices(chars, k=length))}" for _ in range(num_elements)]
-        else:
-            # Sequential
-            values = [f"{prefix}{str(i + 1).zfill(length)}" for i in range(num_elements)]
-
+        values = [""] * num_elements
     else:
-        # Default: empty strings or zeros
-        if attribute_type == "i":
-            values = [0] * num_elements
-        elif attribute_type == "f":
-            values = [0.0] * num_elements
-        else:
-            values = [""] * num_elements
+        values = [""] * num_elements
 
     return values
 
@@ -457,21 +545,16 @@ def hierarchy_to_dataframe(df_template, hierarchy_dict):
             # Replace NaN values with 0
             df[col] = df[col].fillna(0)
 
-    # Add attributes if specified in template
-    if "attributes" in df_template:
-        num_elements = len(df)
-        for attribute_info in df_template["attributes"]:
-            attribute_name = attribute_info["name"].split(":")[0] if ":" in attribute_info["name"] else attribute_info[
-                "name"]
-            attribute_values = generate_element_attributes(attribute_info, num_elements)
-            df[attribute_name] = attribute_values
-
-    # Reorder columns
+    # Add attributes if specified in template and reorder columns
     column_order = ["element_id", "element_type"] + level_columns + level_weight_columns
     if "attributes" in df_template:
-        attribute_names = [attr_info["name"].split(":")[0] if ":" in attr_info["name"] else attr_info["name"]
-                           for attr_info in df_template["attributes"]]
-        column_order += attribute_names
+        num_elements = len(df)
+        attr_list = df_template["attributes"]
+        for i in range(len(attr_list)):
+            attribute_name =attr_list[i]
+            attribute_values = _generate_element_attributes(attribute_name, num_elements)
+            df[attribute_name] = attribute_values
+            column_order += attribute_name
 
     # Only include columns that exist in the dataframe
     column_order = [col for col in column_order if col in df.columns]
@@ -600,6 +683,7 @@ def generate_hierarchy_dictionary(df_template):
 # Print a limited version of hierarchical nested dictionary for demonstration
 def _print_limited_nested_dictionary(node, depth=0, max_children=2, max_depth=2):
     """Helper function to print a limited view of the hierarchy for demonstration"""
+    basic_logger.debug("Generated Hierarchy Preview:")
     indent = "  " * depth
     print(f"{indent}- {node['element_name']} ({node['level']})")
 
@@ -608,7 +692,7 @@ def _print_limited_nested_dictionary(node, depth=0, max_children=2, max_depth=2)
         for child in children_to_print:
             _print_limited_nested_dictionary(child, depth + 1, max_children, max_depth)
         if len(node['children']) > max_children:
-            print(f"{indent}  ... and {len(node['children']) - max_children} more children")
+            basic_logger.debug(f"{indent}  ... and {len(node['children']) - max_children} more children")
 
 # Count total elements of a nested dictionary
 def _count_nested_dictionary_elements(node):

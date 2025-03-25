@@ -1,0 +1,12 @@
+dev:
+  - targetCube: "}ElementAttributes_testbenchCustomer"
+    CountryOfOrigin:
+      method: "function"
+      callable: _random_from_variable_list
+      kwargs:
+        reference: ${variables.countries}
+    Loyalty:
+      method: "function"
+      callable: _random_from_variable_list
+      kwargs:
+        reference: ${variables.loyalty}

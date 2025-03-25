@@ -5,9 +5,14 @@
 # * template structure:
 #   * elements
 #   * levels
-#   * attributes
+#   * attributes list
 # output tm1py compatible dataframe 
 # custom - Custom defined python script to generate a specific dimension
+# CUBE GENERATION
+#  * Name
+#  * list of dimensions
+#  * list of rules
+# DATASET GENERATION
 import:
   cubes:
     - Discount
@@ -33,3 +38,5 @@ import:
       - product
     custom:
       - period
+  datasets:
+    - account_attributes
