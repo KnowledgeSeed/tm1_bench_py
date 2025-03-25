@@ -1,5 +1,7 @@
 dev:
   - targetCube: "}ElementAttributes_testbenchAccount"
+    rows:
+        mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchKeyAccountManager].[testbenchKeyAccountManager])}, 0)}"
     StatementType:
       method: "function"
       callable: _random_from_variable_list

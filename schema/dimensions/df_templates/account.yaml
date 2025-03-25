@@ -11,5 +11,5 @@ dev:
         {"name": "level000",
          "constant_content": "All Account"}
     ],
-    "attributes": ["StatementType:s","Type:s","Sign:s"]
+    "attributes": ["StatementType:s","Type:s","Sign:n"]
   }

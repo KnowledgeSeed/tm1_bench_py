@@ -1,7 +1,5 @@
 from pathlib import Path
 import configparser
-from TM1py.Exceptions import TM1pyRestException
-import pandas as pd
 from TM1py import TM1Service
 from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Rules
 import utility as utility
@@ -29,6 +27,9 @@ class SchemaLoader:
             'custom': {}
         }
         self.cubes = {}
+        self.datasets = {}
+        self.config = {}
+        self.variables = {}
         self.generator_cache = {}
 
     def load_schema(self) -> Dict[str, Any]:
@@ -40,12 +41,24 @@ class SchemaLoader:
         # Load dimensions by type
         self._load_dimensions(main_schema['import']['dimensions'])
 
-        # Load dimensions by type
+        # Load cubes by type
         self._load_cubes(main_schema['import']['cubes'])
+
+        # Load datasets by type
+        self._load_datasets(main_schema['import']['datasets'])
+
+        # Load datasets by type
+        self._load_config(main_schema['import']['config'])
+
+        # Load datasets by type
+        self._load_variables(main_schema['import']['variables'])
 
         return {
             'dimensions': self.dimensions,
-            'cubes': self.cubes
+            'cubes': self.cubes,
+            'datasets': self.datasets,
+            'variables': self.variables,
+            'config': self.config
         }
 
     def _load_dimensions(self, dimension_refs: Dict[str, List[str]]) -> None:
@@ -74,6 +87,27 @@ class SchemaLoader:
             path = os.path.join(self.schema_dir, 'cubes', f"{cube_name}.yaml")
             with open(path, 'r') as f:
                 self.cubes[cube_name] = yaml.safe_load(f)
+
+    def _load_datasets(self, datasets_refs: Dict[str, List[str]]) -> None:
+        """Load all dataset definitions by type"""
+        for dataset in datasets_refs:
+            path = os.path.join(self.schema_dir, 'datasets', f"{dataset}.yaml")
+            with open(path, 'r') as f:
+                self.datasets[dataset] = yaml.safe_load(f)
+
+    def _load_config(self, config_refs: Dict[str, Any]) -> None:
+        """Load config definitions"""
+        path = os.path.join(self.schema_dir, "config.yaml")
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                self.config = yaml.safe_load(f)
+
+    def _load_variables(self, variables_refs: Dict[str, Any]) -> None:
+        """Load variables definitions"""
+        path = os.path.join(self.schema_dir, "variables.yaml")
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                self.variables = yaml.safe_load(f)
 
     def get_generator(self, generator_path: str) -> Callable:
         """Dynamically import a custom generator class"""
@@ -175,7 +209,6 @@ def create_cubes(tm1: TM1Service, schema, env):
         cube_name = schema['cubes'][cubes][env]['name']
         cube_dimensions = schema['cubes'][cubes][env]['dimensions']
         cube_rules = schema['cubes'][cubes][env]['rules']
-        print(cube_rules)
         cube = Cube(name=cube_name, dimensions=cube_dimensions)
         tm1.cubes.update_or_create(cube)
         rule_str = '\r\n'.join(cube_rules) + '\r\n'
@@ -193,9 +226,14 @@ if __name__ == '__main__':
     schema = loader.load_schema()
 
     tm1 = tm1_connection()
-    env = "dev"
+
+    #CONSTANTS
+    _ENV = schema['config']['default_yaml_env']
+    _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
+    print(_DEFAULT_DF_TO_CUBE_KWARGS)
     try:
-        create_dimensions(tm1, schema, env)
-        create_cubes(tm1, schema, env)
+        create_dimensions(tm1, schema, _ENV)
+        create_cubes(tm1, schema, _ENV)
+        pass
     finally:
         tm1.logout()

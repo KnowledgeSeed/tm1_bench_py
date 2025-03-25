@@ -22,7 +22,7 @@
 
 dev:
   dimension_name: "testbenchPeriod"
-  callable: utility.generate_time_dimension
+  callable: dimension_period_builder.generate_time_dimension
   kwargs:
     year_start: 2024
     year_end: 2028

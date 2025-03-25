@@ -11,5 +11,5 @@ dev:
       {"name": "level000",
        "constant_content": "All Key Account Manager"}
     ],
-    "attributes": ["Seniority:s","Gender:s","CountryOfOrigin:s"]
+    "attributes": ["Seniority:s","Gender:s","CountryOfOrigin:s","FirstName:s","LastName:s"]
   }

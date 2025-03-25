@@ -1,12 +1,15 @@
 dev:
   - targetCube: "}ElementAttributes_testbenchCustomer"
-    CountryOfOrigin:
-      method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.countries}
-    Loyalty:
-      method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.loyalty}
+    rows:
+        mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchCustomer].[testbenchCustomer])}, 0)}"
+    data:
+      CountryOfOrigin:
+        method: "function"
+        callable: _random_from_variable_list
+        kwargs:
+          reference: ${variables.countries}
+      Loyalty:
+        method: "function"
+        callable: _random_from_variable_list
+        kwargs:
+          reference: ${variables.loyalty}

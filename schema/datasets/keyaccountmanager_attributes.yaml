@@ -1,27 +1,30 @@
 dev:
   - targetCube: "}ElementAttributes_testbenchKeyAccountManager"
-    Seniority:
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.seniority}
-    Gender:
-      method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.gender}
-    CountryOfOrigin:
-      method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.countries}
-    FirstName:
-      method: "function"
-      callable: _look_up_based_on_column_value
-      kwargs:
-        referred_column: "Gender"
-        lookup_reference: ${variables.gender.first_names}
-    LastName:
-      method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.last_names}
+    rows:
+      mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchKeyAccountManager].[testbenchKeyAccountManager])}, 0)}"
+    data:
+      Seniority:
+        callable: _random_from_variable_list
+        kwargs:
+          reference: ${variables.seniority}
+      Gender:
+        method: "function"
+        callable: _random_from_variable_list
+        kwargs:
+          reference: ${variables.gender}
+      CountryOfOrigin:
+        method: "function"
+        callable: _random_from_variable_list
+        kwargs:
+          reference: ${variables.countries}
+      FirstName:
+        method: "function"
+        callable: _look_up_based_on_column_value
+        kwargs:
+          referred_column: "Gender"
+          lookup_reference: ${variables.gender.first_names}
+      LastName:
+        method: "function"
+        callable: _random_from_variable_list
+        kwargs:
+          reference: ${variables.last_names}

@@ -13,6 +13,7 @@
 #  * list of dimensions
 #  * list of rules
 # DATASET GENERATION
+# generate pandas dataframes based on templates and laod it to the given target cubes
 import:
   cubes:
     - Discount
@@ -40,3 +41,15 @@ import:
       - period
   datasets:
     - account_attributes
+    - customer_attributes
+    - discount_data
+    - keyaccountmanager_attributes
+    - organizationunit_attributes
+    - price_data
+    - product_attributes
+    - sales_data
+    - version_attributes
+  config:
+    config
+  variables:
+    variables

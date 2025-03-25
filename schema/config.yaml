@@ -1,0 +1,6 @@
+default_yaml_env: "dev"
+df_to_cube_default_kwargs:
+  clear_before_load: True
+  clear_set: []
+  async_write: False
+  slice_size_of_dataframe: 5000

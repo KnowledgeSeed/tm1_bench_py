@@ -1,7 +1,20 @@
 dev:
-  - targetCube: "}ElementAttriburtes_testbenchVersion"
-    ShortAlias:
-      method: "function"
-      callable: _getCapitalLetters
-      kwargs:
-        string: $elementId
+  - targetCube: "}ElementAttributes_testbenchVersion"
+    rows:
+        mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}"
+    data:
+      ShortAlias:
+        method: "function"
+        callable: _getCapitalLetters
+        kwargs:
+          string: $elementId
+unit_test:
+  - targetCube: "}ElementAttributes_testbenchVersion"
+    rows:
+      mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}"
+    data:
+      ShortAlias:
+        method: "function"
+        callable: _getCapitalLetters
+        kwargs:
+          string: $elementId
