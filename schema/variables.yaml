@@ -1,5 +1,5 @@
 gender:
-    -M:
+    M:
         name: "Male"
         short: "M"
         fist_names:
@@ -13,7 +13,7 @@ gender:
             - name: "Paul"
             - name: "Martin"
             - name: "Abel"
-    -F:
+    F:
         name: "Female"
         short: "F"
         fist_names:
@@ -47,23 +47,15 @@ seniority:
         name: "1-3"
     -2:
         name: "3+"
-account_type:
-    -0:
-        name: "PnL"
-    -1:
-        name: "BS"
+account_type: ["PnL","BS"]
 pnl_account_type:
-    -0:
-        name: "Revenue"
+    Revenue:
         sign: 1
-    -1:
-        name: "CoS"
+    CoS:
         sign: -1
-    -2:
-        name: "OtherCost"
+    OtherCost:
         sign: -1
-    -3:
-        name: "PersonalCost"
+    PersonalCost:
         sign: -1
 loyalty:
     - ""

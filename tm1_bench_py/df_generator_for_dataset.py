@@ -123,7 +123,7 @@ def _split_mdx_string(mdx_string: str) -> list:
 # ------------------------------------------------------------------------------------------------------------
 # Utility: Generator lambdas utilities
 # ------------------------------------------------------------------------------------------------------------
-def _get_nested_value(data: Dict[str, Any], path: str) -> Any:
+def _get_nested_value(schema: Dict[str, Any], path: str) -> Any:
     """
     Retrieve a nested value from a dictionary using a dot-separated path.
 
@@ -135,7 +135,7 @@ def _get_nested_value(data: Dict[str, Any], path: str) -> Any:
     keys = path.split('.')
 
     # Traverse the nested dictionary
-    current = data
+    current = schema
     for key in keys:
         # If current is not a dictionary or key doesn't exist, return None
         if not isinstance(current, dict) or key not in current:
@@ -143,21 +143,30 @@ def _get_nested_value(data: Dict[str, Any], path: str) -> Any:
 
         # Move to the next level
         current = current[key]
-
+    print(current)
     return current
 
 def _random_from_variable_list (variable_path: str, row_data: {}, schema):
 
-    value_list = _get_nested_value(schema, variable_path)
-    # Check if the list is valid and not empty
-    if not value_list or not isinstance(value_list, list):
+    return_value = _get_nested_value(schema, variable_path)
+    if return_value is None:
         print(f"Warning: No valid list found at path {variable_path}")
         return None
+    elif isinstance(return_value, list):
+        print(return_value)
+        # Randomly select and return a member from the list
+        return random.choice(return_value)
+    # Check if the list is valid and not empty
+    if isinstance(return_value, dict):
+        # Get the list of keys
+        keys = list(return_value.keys())
 
-    # Randomly select and return a member from the list
-    return random.choice(value_list)
+        # Randomly select and return a key
+        if keys:
+            return random.choice(keys)
 
-def _look_up_based_on_column_value(row_data: {}, schema):
+
+def _look_up_based_on_column_value(row_data: {},referred_column: str, lookup_reference: str, schema):
     pass
 
 def _generate_from_subset_MDX(row_data: {}, schema):
@@ -280,7 +289,7 @@ def main():
     schema = loader.load_schema()
 
     tm1 = tm1_connection()
-    tst_yaml_content = schema['datasets']['version_attributes']['unit_test']
+    tst_yaml_content = schema['datasets']['account_attributes']['unit_test']
 
     dataset = generate_dataframe(tst_yaml_content, tm1, schema)
     print(dataset)
