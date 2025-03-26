@@ -146,15 +146,8 @@ def _get_nested_value(data: Dict[str, Any], path: str) -> Any:
 
     return current
 
-def _random_from_variable_list (variable_path: str, row_data: {}):
-    # Get the directory where your script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Navigate one level up to project_folder/
-    parent_dir = os.path.dirname(script_dir)
-    # Create the absolute path to your schema directory
-    schema_dir = os.path.join(parent_dir, "schema")
-    loader = tm1_bench.SchemaLoader(schema_dir)
-    schema = loader.load_schema()
+def _random_from_variable_list (variable_path: str, row_data: {}, schema):
+
     value_list = _get_nested_value(schema, variable_path)
     # Check if the list is valid and not empty
     if not value_list or not isinstance(value_list, list):
@@ -164,16 +157,16 @@ def _random_from_variable_list (variable_path: str, row_data: {}):
     # Randomly select and return a member from the list
     return random.choice(value_list)
 
-def _look_up_based_on_column_value():
+def _look_up_based_on_column_value(row_data: {}, schema):
     pass
 
-def _generate_from_subset_MDX():
+def _generate_from_subset_MDX(row_data: {}, schema):
     pass
 
-def _generate_String_wit_ElementId():
+def _generate_String_wit_ElementId(row_data: {}, schema):
     pass
 
-def _getCapitalLetters(apply_on_column: str, row_data: {} ) -> str:
+def _getCapitalLetters(apply_on_column: str, row_data: {}, schema ) -> str:
     """
     Extract and return only the capital letters from the input string
 
@@ -182,8 +175,8 @@ def _getCapitalLetters(apply_on_column: str, row_data: {} ) -> str:
     """
     print(row_data)
     element = str(row_data[apply_on_column])
-    print(element, ''.join(c for c in element if element.isupper()))
-    return ''.join(c for c in element if element.isupper())
+    print(element, ''.join(c for c in element if c.isupper()))
+    return ''.join(c for c in element if c.isupper())
 
 # ------------------------------------------------------------------------------------------------------------
 # Utility: Dataframe generator functions
@@ -213,7 +206,7 @@ def _generate_row_combinations(list_of_row_dictionaries, number_of_rows) -> List
         row_combinations = list(row_combinations)
     return row_combinations
 
-def generate_dataframe(dataset_template: Dict[Any, Any],tm1) -> pd.DataFrame:
+def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.DataFrame:
     """
     Generate DataFrame based on the schema
 
@@ -263,6 +256,7 @@ def generate_dataframe(dataset_template: Dict[Any, Any],tm1) -> pd.DataFrame:
                     module = importlib.import_module(module_name)
                     func = getattr(module, func_name)
                     kwargs['row_data'] = cur_row_data
+                    kwargs['schema'] = schema
                     row_data['Value'] = func(**kwargs)
                     basic_logger.info(f"Successfully resolved function: {func}")
                 except Exception as e:
@@ -288,7 +282,7 @@ def main():
     tm1 = tm1_connection()
     tst_yaml_content = schema['datasets']['version_attributes']['unit_test']
 
-    dataset = generate_dataframe(tst_yaml_content,tm1)
+    dataset = generate_dataframe(tst_yaml_content, tm1, schema)
     print(dataset)
 
 if __name__ == '__main__':
