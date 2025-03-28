@@ -1,19 +1,28 @@
 dev:
-  - targetCube: "}ElementAttributes_testbenchOrganizationUnit"
+  targetCube: "}ElementAttributes_testbenchOrganizationUnit"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchOrganizationUnit].[testbenchOrganizationUnit])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_testbenchOrganizationUnit"
+  data:
     Country:
       method: "function"
-      callable: _random_from_variable_list
-      kwargs:
-        reference: ${variables.countries}
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.countries"
     Currency:
       method: "function"
-      callable: _look_up_based_on_column_value
-      kwargs:
-        referred_column: "Type"
-        lookup_reference: ${variables.countries.currency}
+      callable: df_generator_for_dataset._look_up_based_on_column_value
+      params:
+        referred_column: "Country"
+        variable_path: "variables.countries"
+        variable_key: "currency"
     NameLong:
       method: "function"
-      callable: _generate_String_wit_ElementId
-      kwargs:
+      callable: df_generator_for_dataset._look_up_based_on_column_value
+      params:
         prefix: ""
         postfix: " Ltd."
+        referred_column: "Country"
+        variable_path: "variables.countries"
+        variable_key: "name"

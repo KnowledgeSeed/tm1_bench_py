@@ -1,16 +1,18 @@
 dev:
-  - targetCube: "}ElementAttributes_testbenchProduct"
-    rows:
-      mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchProduct].[testbenchProduct])}, 0)}"
-    data:
-      Size:
-        method: "function"
-        callable: _random_from_variable_list
-        kwargs:
-          reference: ${variables.product_size}
-      AccountType:
-        method: "function"
-        callable: _generate_from_subset_MDX
-        kwargs:
-          dimension_name: "testbenchAccount"
-          subsetMDX: "{[testbenchAccount].[testbenchAccount].Members}"
+  targetCube: "}ElementAttributes_testbenchProduct"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchProduct].[testbenchProduct])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_testbenchProduct"
+  data:
+    Size:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.product_size"
+    AccountType:
+      method: "function"
+      callable: df_generator_for_dataset._generate_from_subset_MDX
+      params:
+        dimension_name: "testbenchAccount"
+        subsetMDX: "{[testbenchAccount].[testbenchAccount].Members}"

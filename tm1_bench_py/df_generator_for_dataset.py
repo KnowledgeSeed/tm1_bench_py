@@ -1,5 +1,5 @@
 from dataclasses import replace
-
+from typing import Callable, List, Dict, Optional, Any
 import pandas as pd
 import random
 from pathlib import Path
@@ -26,7 +26,11 @@ def tm1_connection():
     tm1 = TM1Service(**config['testbench'])
     return tm1
 
-def _create_subset_from_mdx(dimension: str, hierarchy: str, mdx: str ,tm1) -> List[str]:
+def _create_subset_from_mdx(dimension: str,
+                            hierarchy: str,
+                            mdx: str ,
+                            tm1: Optional[Any],
+                            subset_name: Optional[str] = None) -> List[str]:
     """
     Create a subset from MDX and return its elements
 
@@ -37,13 +41,15 @@ def _create_subset_from_mdx(dimension: str, hierarchy: str, mdx: str ,tm1) -> Li
     """
     try:
         # Create a temporary subset
-        subset_name = f"}}Temp_Subset_{hash(mdx)}"
+        if subset_name is None:
+            subset_name = f"}}Temp_Subset_{hash(mdx)}"
 
         # Create subset using MDX
         # define Subset Object by MDX Expression
         subset = Subset(dimension_name=dimension,subset_name=subset_name,hierarchy_name=hierarchy ,expression=mdx)
         #post the object ot the server
-        tm1.subsets.create(subset=subset)
+        if not tm1.subsets.exists(dimension_name=dimension,subset_name=subset_name):
+            tm1.subsets.create(subset=subset)
 
         # Retrieve elements from the subset
         subset_elements = tm1.subsets.get_element_names(
@@ -52,10 +58,11 @@ def _create_subset_from_mdx(dimension: str, hierarchy: str, mdx: str ,tm1) -> Li
             subset_name=subset_name
         )
         # Delete temporary subset
-        tm1.dimensions.subsets.delete(
-            dimension_name=dimension,
-            subset_name=subset_name
-        )
+        if subset_name is None:
+            tm1.dimensions.subsets.delete(
+                dimension_name=dimension,
+                subset_name=subset_name
+            )
 
         # Return list of element names
         return subset_elements
@@ -143,17 +150,17 @@ def _get_nested_value(schema: Dict[str, Any], path: str) -> Any:
 
         # Move to the next level
         current = current[key]
-    print(current)
     return current
 
-def _random_from_variable_list (variable_path: str, row_data: {}, schema):
+def _random_from_variable_list (**kwargs):
+    schema = kwargs['schema']
+    variable_path = kwargs['params']['variable_path']
 
     return_value = _get_nested_value(schema, variable_path)
     if return_value is None:
         print(f"Warning: No valid list found at path {variable_path}")
         return None
     elif isinstance(return_value, list):
-        print(return_value)
         # Randomly select and return a member from the list
         return random.choice(return_value)
     # Check if the list is valid and not empty
@@ -166,27 +173,147 @@ def _random_from_variable_list (variable_path: str, row_data: {}, schema):
             return random.choice(keys)
 
 
-def _look_up_based_on_column_value(row_data: {},referred_column: str, lookup_reference: str, schema):
-    pass
+def _look_up_based_on_column_value(**kwargs):
+    row_data = kwargs['row_data']
+    cur_row_data = kwargs['cur_row_data']
+    referred_column = kwargs['params']['referred_column']
+    variable_path = kwargs['params']['variable_path']
+    variable_key = kwargs['params']['variable_key']
+    schema = kwargs['schema']
+    prefix = kwargs['params'].get('prefix')
+    postfix = kwargs['params'].get('postfix')
+    if prefix:
+        pref = str(prefix)
+    else: pref = ""
+    if postfix:
+        post = str(postfix)
+    else: post = ""
 
-def _generate_from_subset_MDX(row_data: {}, schema):
-    pass
+    # Convert reference dictionary keys and values to lists for easier indexing
+    ref_keys = list(cur_row_data.keys())
+    ref_values = list(cur_row_data.values())
+    n = len(ref_keys)
+    # find in the previously generaed content the matching dictionaries based on the given referred column
+    for row  in row_data:
+        cur_key = list(row.keys())
+        cur_values = list(row.values())
+        if len(cur_key) != len(ref_keys):
+            match_found = all(
+                cur_key[i] == ref_keys[i] and
+                cur_values[i] == ref_values[i]
+                for i in range(n-1)
+            )
 
-def _generate_String_wit_ElementId(row_data: {}, schema):
-    pass
+            # If all n-1 elements and their keys match, find the n element with the given path and key the looked up variable value
+            if match_found and cur_values[n-1] == str(referred_column):
+                variable_path = variable_path+"."+str(cur_values[n])+"."+variable_key
+                return pref + str(_get_nested_value(schema, variable_path)) + post
 
-def _getCapitalLetters(apply_on_column: str, row_data: {}, schema ) -> str:
+def _generate_from_subset_MDX(**kwargs):
+    dimension = kwargs['params']['dimension_name']
+    hierarchy = kwargs['params'].get('hierarchy_name')
+    subsetMDX = kwargs['params']['subsetMDX']
+    tm1 = kwargs['tm1']
+
+    if hierarchy == None:
+        hierarchy = dimension
+
+    subset_name = f"}}tm1bench_Random_Subset_{hash(subsetMDX)}"
+
+    element_list =_create_subset_from_mdx(dimension=dimension, hierarchy=hierarchy, mdx=subsetMDX, tm1 = tm1, subset_name = subset_name)
+    return random.choice(element_list)
+
+def _getCapitalLetters(**kwargs) -> str:
     """
     Extract and return only the capital letters from the input string
 
     :param string: Input string
     :return: String containing only capital letters from the original
     """
-    print(row_data)
+    row_data = kwargs['cur_row_data']
+    apply_on_column = kwargs['params']['apply_on_column']
     element = str(row_data[apply_on_column])
-    print(element, ''.join(c for c in element if c.isupper()))
     return ''.join(c for c in element if c.isupper())
 
+
+def _random_number_based_on_statistic(**kwargs):
+    """
+    Generate a random number with various distribution methods.
+
+    Args:
+        min_val (int or float): Minimum value of the range
+        max_val (int or float): Maximum value of the range
+        num_type (str, optional): Type of number to generate.
+                                  Supports 'int' or 'float'.
+                                  Defaults to 'int'.
+        distribution (str, optional): Random distribution method.
+                                      Supports:
+                                      - 'uniform' (default)
+                                      - 'normal' (Gaussian)
+                                      - 'exponential'
+                                      - 'triangular'
+        **kwargs: Additional parameters for specific distributions
+
+    Returns:
+        int or float: A random number generated according to specified distribution
+
+    Raises:
+        ValueError: If an unsupported distribution or number type is provided
+        TypeError: If min_val or max_val are not numbers
+    """
+    #get kwargs
+    min_val = kwargs['params']['min_val']
+    max_val = kwargs['params']['max_val']
+    num_type = kwargs['params']['num_type']
+    distribution = kwargs['params']['distribution']
+
+    # Validate input types
+    if not (isinstance(min_val, (int, float)) and isinstance(max_val, (int, float))):
+        raise TypeError("Min and max values must be numbers")
+
+    # Ensure min_val is less than max_val
+    if min_val > max_val:
+        min_val, max_val = max_val, min_val
+
+    # Distribution selection
+    if distribution.lower() == 'uniform':
+        # Standard uniform distribution
+        if num_type.lower() == 'int':
+            return random.randint(int(min_val), int(max_val))
+        elif num_type.lower() == 'float':
+            return random.uniform(min_val, max_val)
+
+    elif distribution.lower() == 'normal':
+        # Normal (Gaussian) distribution
+        # Requires mean and standard deviation
+        mean =  kwargs['params'].get('mean', (min_val + max_val) / 2)
+        std_dev =  kwargs['params'].get('std_dev', (max_val - min_val) / 6)
+
+        while True:
+            num = random.gauss(mean, std_dev)
+            if min_val <= num <= max_val:
+                return int(num) if num_type.lower() == 'int' else num
+
+    elif distribution.lower() == 'exponential':
+        # Exponential distribution
+        # Requires lambda parameter (rate)
+        rate = kwargs['params'].get('distribution', 1.0)
+
+        while True:
+            # Generate exponential distribution
+            num = min_val + random.expovariate(rate)
+            if num <= max_val:
+                return int(num) if num_type.lower() == 'int' else num
+
+    elif distribution.lower() == 'triangular':
+        # Triangular distribution
+        # Requires mode (peak) parameter
+        mode = kwargs['params'].get('mode', (min_val + max_val) / 2)
+
+        return random.triangular(min_val, max_val, mode)
+
+    else:
+        raise ValueError(f"Unsupported distribution: {distribution}")
 # ------------------------------------------------------------------------------------------------------------
 # Utility: Dataframe generator functions
 # ------------------------------------------------------------------------------------------------------------
@@ -243,7 +370,7 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
     for data in dataset_template['data']:
         callable_str = dataset_template['data'][data]['callable']
         method = dataset_template['data'][data]['method']
-        kwargs = dataset_template['data'][data]['kwargs']
+        params = dataset_template['data'][data]['params']
         # Create a row dictionary
         for combination in rows:
             row_data = {}
@@ -264,10 +391,7 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
                     module_name, func_name = callable_str.rsplit('.', 1)
                     module = importlib.import_module(module_name)
                     func = getattr(module, func_name)
-                    kwargs['row_data'] = cur_row_data
-                    kwargs['schema'] = schema
-                    row_data['Value'] = func(**kwargs)
-                    basic_logger.info(f"Successfully resolved function: {func}")
+                    row_data['Value'] = func( cur_row_data = cur_row_data, row_data = df_row, schema = schema, params = params, tm1 = tm1 )
                 except Exception as e:
                     basic_logger.info(f"Error resolving function: {e}")
                     raise
@@ -289,7 +413,7 @@ def main():
     schema = loader.load_schema()
 
     tm1 = tm1_connection()
-    tst_yaml_content = schema['datasets']['account_attributes']['unit_test']
+    tst_yaml_content = schema['datasets']['sales_data']['dev']
 
     dataset = generate_dataframe(tst_yaml_content, tm1, schema)
     print(dataset)

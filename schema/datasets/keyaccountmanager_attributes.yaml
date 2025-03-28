@@ -1,30 +1,34 @@
 dev:
-  - targetCube: "}ElementAttributes_testbenchKeyAccountManager"
-    rows:
-      mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchKeyAccountManager].[testbenchKeyAccountManager])}, 0)}"
-    data:
-      Seniority:
-        callable: _random_from_variable_list
-        kwargs:
-          reference: ${variables.seniority}
-      Gender:
-        method: "function"
-        callable: _random_from_variable_list
-        kwargs:
-          reference: ${variables.gender}
-      CountryOfOrigin:
-        method: "function"
-        callable: _random_from_variable_list
-        kwargs:
-          reference: ${variables.countries}
-      FirstName:
-        method: "function"
-        callable: _look_up_based_on_column_value
-        kwargs:
-          referred_column: "Gender"
-          lookup_reference: ${variables.gender.first_names}
-      LastName:
-        method: "function"
-        callable: _random_from_variable_list
-        kwargs:
-          reference: ${variables.last_names}
+  targetCube: "}ElementAttributes_testbenchKeyAccountManager"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchKeyAccountManager].[testbenchKeyAccountManager])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_testbenchKeyAccountManager"
+  data:
+    Seniority:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.seniority"
+    Gender:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.gender"
+    CountryOfOrigin:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.countries"
+    FirstName:
+      method: "function"
+      callable: df_generator_for_dataset._look_up_based_on_column_value
+      params:
+        referred_column: "Gender"
+        variable_path: "variables.gender"
+        variable_key: "first_names"
+    LastName:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.last_names"

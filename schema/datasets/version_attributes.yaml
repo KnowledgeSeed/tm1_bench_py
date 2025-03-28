@@ -8,7 +8,7 @@ dev:
     ShortAlias:
       method: "function"
       callable: df_generator_for_dataset._getCapitalLetters
-      kwargs:
+      params:
         apply_on_column: "testbenchVersion"
 unit_test:
   targetCube: "}ElementAttributes_testbenchVersion"
@@ -20,10 +20,10 @@ unit_test:
     ShortAlias:
       method: "function"
       callable: df_generator_for_dataset._getCapitalLetters
-      kwargs:
+      params:
         apply_on_column: "testbenchVersion"
     LongAlias:
       method: "function"
       callable: df_generator_for_dataset._getCapitalLetters
-      kwargs:
+      params:
         apply_on_column: "testbenchVersion"
