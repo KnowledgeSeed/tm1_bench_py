@@ -9,7 +9,7 @@ from TM1py import TM1Service, SubsetService
 from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Subset
 import os
 from typing import Dict, Any, List, Union
-from tm1_bench_py import  exec_metrics_logger, basic_logger,tm1_bench
+from tm1_bench_py import  exec_metrics_logger, basic_logger,tm1_bench, utility
 import re
 import itertools
 from tm1_bench import SubsetService, Subset
@@ -151,6 +151,23 @@ def _get_nested_value(schema: Dict[str, Any], path: str) -> Any:
         # Move to the next level
         current = current[key]
     return current
+
+def _index_from_variable_list (**kwargs):
+    schema = kwargs['schema']
+    variable_path = kwargs['params']['variable_path']
+    index = kwargs['index']
+    return_value = _get_nested_value(schema, variable_path)
+
+    if return_value is None:
+        print(f"Warning: No valid list found at path {variable_path}")
+        return None
+    if isinstance(return_value, list):
+        return return_value[index]
+    if isinstance(return_value, dict):
+        # Get the list of keys
+        keys = list(return_value.keys())
+        print(keys[index], keys)
+        return keys[index]
 
 def _random_from_variable_list (**kwargs):
     schema = kwargs['schema']
@@ -371,6 +388,7 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
         callable_str = dataset_template['data'][data]['callable']
         method = dataset_template['data'][data]['method']
         params = dataset_template['data'][data]['params']
+        index = 0
         # Create a row dictionary
         for combination in rows:
             row_data = {}
@@ -391,11 +409,11 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
                     module_name, func_name = callable_str.rsplit('.', 1)
                     module = importlib.import_module(module_name)
                     func = getattr(module, func_name)
-                    row_data['Value'] = func( cur_row_data = cur_row_data, row_data = df_row, schema = schema, params = params, tm1 = tm1 )
+                    row_data['Value'] = func( cur_row_data = cur_row_data, row_data = df_row, schema = schema, params = params, tm1 = tm1, index = index )
                 except Exception as e:
                     basic_logger.info(f"Error resolving function: {e}")
                     raise
-
+            index += 1
             df_row.append(row_data)
 
     return pd.DataFrame.from_dict(df_row)
@@ -413,10 +431,21 @@ def main():
     schema = loader.load_schema()
 
     tm1 = tm1_connection()
-    tst_yaml_content = schema['datasets']['sales_data']['dev']
+    tst_yaml_content = schema['datasets']['organizationunit_attributes']['dev']
 
     dataset = generate_dataframe(tst_yaml_content, tm1, schema)
-    print(dataset)
+
+    utility._dataframe_to_cube_default(
+        tm1_service=tm1,
+        dataframe=dataset,
+        cube_name=schema['datasets']['organizationunit_attributes']['dev']['targetCube'],
+        cube_dims= [ "testbenchOrganizationUnit","}ElementAttributes_testbenchOrganizationUnit"],
+        use_ti = False,
+        use_blob = True,
+        increment = False,
+        async_write = True,
+        slice_size_of_dataframe= 50000
+    )
 
 if __name__ == '__main__':
     main()

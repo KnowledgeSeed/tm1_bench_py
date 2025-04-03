@@ -3,10 +3,10 @@ dev:
   rows:
     mdx: "{[testbenchVersion].[testbenchVersion].[Actual]}* 
           {[testbenchPeriod].[testbenchPeriod].[202401],[testbenchPeriod].[testbenchPeriod].[202402],[testbenchPeriod].[testbenchPeriod].[202403],[testbenchPeriod].[testbenchPeriod].[202404],[testbenchPeriod].[testbenchPeriod].[202405],[testbenchPeriod].[testbenchPeriod].[202406],[testbenchPeriod].[testbenchPeriod].[202407],[testbenchPeriod].[testbenchPeriod].[202408],[testbenchPeriod].[testbenchPeriod].[202409],[testbenchPeriod].[testbenchPeriod].[202410],[testbenchPeriod].[testbenchPeriod].[202411],[testbenchPeriod].[testbenchPeriod].[202412],[testbenchPeriod].[testbenchPeriod].[202501],[testbenchPeriod].[testbenchPeriod].[202502],[testbenchPeriod].[testbenchPeriod].[202503]}*
-          {[testbenchProduct].[testbenchProduct].Members}*
+          {TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchCustomer].[testbenchCustomer])}, 0)}*
           {[testbenchMeasureDiscount].[testbenchMeasureDiscount].[Discount Perc.]}"
     number_of_rows: 15000
-  data_colum_dimension: "testbenchMeasurePrice"
+  data_colum_dimension: ""
   data:
     Size:
       method: "function"

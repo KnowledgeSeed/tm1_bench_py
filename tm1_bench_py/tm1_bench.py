@@ -2,12 +2,14 @@ from pathlib import Path
 import configparser
 from TM1py import TM1Service, SubsetService
 from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Subset
+from more_itertools.more import substrings
+
 import utility as utility
 import os
 import yaml
 import importlib
 from typing import Dict, List, Any, Callable
-from TM1_bedrock_py import basic_logger
+from tm1_bench_py import basic_logger, df_generator_for_dataset
 
 
 def tm1_connection():
@@ -38,20 +40,24 @@ class SchemaLoader:
         with open(main_schema_path, 'r') as f:
             main_schema = yaml.safe_load(f)
 
-        # Load dimensions by type
-        self._load_dimensions(main_schema['import']['dimensions'])
-
-        # Load cubes by type
-        self._load_cubes(main_schema['import']['cubes'])
-
-        # Load datasets by type
-        self._load_datasets(main_schema['import']['datasets'])
-
         # Load datasets by type
         self._load_config(main_schema['import']['config'])
 
         # Load datasets by type
         self._load_variables(main_schema['import']['variables'])
+
+        config_path = os.path.join(self.schema_dir, 'config.yaml')
+        with open(config_path, 'r') as f:
+            conf = yaml.safe_load(f)
+        env = conf['default_yaml_env']
+        # Load dimensions by type
+        self._load_dimensions(main_schema['import']['dimensions'])
+
+        # Load cubes by type
+        self._load_cubes(main_schema['import']['cubes'], env)
+
+        # Load datasets by type
+        self._load_datasets(main_schema['import']['datasets'])
 
         return {
             'dimensions': self.dimensions,
@@ -81,12 +87,14 @@ class SchemaLoader:
             with open(path, 'r') as f:
                 self.dimensions['custom'][dim_name] = yaml.safe_load(f)
 
-    def _load_cubes(self, cube_refs: Dict[str, List[str]]) -> None:
+    def _load_cubes(self, cube_refs: Dict[str, List[str]], env) -> None:
         """Load all cube definitions by type"""
         for cube_name in cube_refs:
             path = os.path.join(self.schema_dir, 'cubes', f"{cube_name}.yaml")
             with open(path, 'r') as f:
-                self.cubes[cube_name] = yaml.safe_load(f)
+                cube = yaml.safe_load(f)
+                cube_name = cube[env]['name']
+                self.cubes[cube_name] = cube
 
     def _load_datasets(self, datasets_refs: Dict[str, List[str]]) -> None:
         """Load all dataset definitions by type"""
@@ -206,6 +214,7 @@ def create_dimensions(tm1: TM1Service, schema, env):
 @utility.log_exec_metrics
 def create_cubes(tm1: TM1Service, schema, env):
     for cubes in schema['cubes']:
+        print(cubes)
         cube_name = schema['cubes'][cubes][env]['name']
         cube_dimensions = schema['cubes'][cubes][env]['dimensions']
         cube_rules = schema['cubes'][cubes][env]['rules']
@@ -213,6 +222,35 @@ def create_cubes(tm1: TM1Service, schema, env):
         tm1.cubes.update_or_create(cube)
         rule_str = '\r\n'.join(cube_rules) + '\r\n'
         tm1.cubes.update_or_create_rules(cube_name=cube_name, rules=rule_str)
+
+def generate_data(tm1: TM1Service, schema, env, system_defaults):
+    for datasets in schema['datasets']:
+        dataset_template = schema['datasets'][datasets][env]
+        target_cube = schema['datasets'][datasets][env]['targetCube']
+        if target_cube.startswith('}ElementAttributes_'):
+            pos = target_cube.find('_')
+            dim_name = target_cube[pos + 1:]
+            cube_dims = [dim_name, target_cube]
+        else:
+            cube_dims = schema['cubes'][target_cube][env]['dimensions']
+        async_write = system_defaults['async_write']
+        slice_size_of_dataframe = system_defaults['slice_size_of_dataframe']
+        use_ti=system_defaults['use_ti']
+        use_blob=system_defaults['use_blob']
+        print(dataset_template)
+        dataframe = df_generator_for_dataset.generate_dataframe(dataset_template, tm1, schema)
+        print(dataframe)
+        utility._dataframe_to_cube_default(
+            tm1_service=tm1,
+            dataframe=dataframe,
+            cube_name=target_cube,
+            cube_dims=cube_dims,
+            use_ti=use_ti,
+            use_blob=use_blob,
+            increment=False,
+            async_write=async_write,
+            slice_size_of_dataframe=slice_size_of_dataframe
+        )
 
 if __name__ == '__main__':
     # Get the directory where your script is located
@@ -230,10 +268,10 @@ if __name__ == '__main__':
     #CONSTANTS
     _ENV = schema['config']['default_yaml_env']
     _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
-    print(_DEFAULT_DF_TO_CUBE_KWARGS)
+
     try:
         #create_dimensions(tm1, schema, _ENV)
         #create_cubes(tm1, schema, _ENV)
-        pass
+        generate_data(tm1, schema, _ENV, _DEFAULT_DF_TO_CUBE_KWARGS)
     finally:
         tm1.logout()

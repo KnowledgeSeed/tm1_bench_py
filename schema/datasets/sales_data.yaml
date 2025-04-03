@@ -8,9 +8,9 @@ dev:
           {[testbenchKeyAccountManager].[testbenchKeyAccountManager].Members}*
           {[testbenchMeasureSales].[testbenchMeasureSales].[Quantity]}"
     number_of_rows: 1500000
-  data_colum_dimension: "testbenchMeasurePrice"
+  data_colum_dimension: "testbenchMeasureSales"
   data:
-    Size:
+    Quantity:
       method: "function"
       callable: df_generator_for_dataset._random_number_based_on_statistic
       params:

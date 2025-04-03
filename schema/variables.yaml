@@ -22,121 +22,121 @@ pnl_account_type:
 loyalty: ["","Bronze","Silver","Gold"]
 product_size: ["S","M","L","XL"]
 countries:
-  HU:
+    HU:
       shortname: "HU"
       name: "Hungary"
       company_postfix: " Kft."
       currency: "HUF"
       region: "EMEA"
-  SK:
+    SK:
       shortname: "SK"
       name: "Slovakia"
       company_postfix: " sro."
       currency: "EUR"
       region: "EMEA"
-  CZ:
+    CZ:
       shortname: "CZ"
       name: "Czech Republic"
       company_postfix: " s.r.o."
       currency: "CZK"
       region: "EMEA"
-  DE:
+    DE:
       shortname: "DE"
       name: "Germany"
       company_postfix: " Gmbh"
       currency: "EUR"
       region: "EMEA"
-  FR:
+    FR:
       shortname: "FR"
       name: "France"
       company_postfix: " ltd"
       currency: "EUR"
       region: "EMEA"
-  CH:
+    CH:
       shortname: "CH"
       name: "Switzerland"
       company_postfix: " Gmbh"
       currency: "CHF"
       region: "EMEA"
-  AT:
+    AT:
       shortname: "AT"
       name: "Austria"
       company_postfix: " gmbh"
       currency: "EUR"
       region: "EMEA"
-  BE:
+    BE:
       shortname: "BE"
       name: "Belgium"
       company_postfix: " ltd"
       currency: "EUR"
       region: "EMEA"
-  PL:
+    PL:
       shortname: "PL"
       name: "Poland"
       company_postfix: " Kft."
       currency: "EUR"
       region: "EMEA"
-  SW:
+    SW:
       shortname: "SW"
       name: "Sweden"
-      company_postfix: " Kft."
+      company_postfix: " ltd."
       currency: "EUR"
       region: "EMEA"
-  NO:
+    NO:
       shortname: "NO"
       name: "Norway"
-      company_postfix: " Kft."
+      company_postfix: " ltd."
       currency: "EUR"
       region: "EMEA"
-  FI:
+    FI:
       shortname: "FI"
       name: "Finland"
       company_postfix: " Ltd"
       currency: "EUR"
       region: "EMEA"
-  US:
+    US:
       shortname: "US"
       name: "United States"
       company_postfix: " Ltd"
       currency: "USD"
       region: "Americas"
-  CA:
+    CA:
       shortname: "CA"
       name: "Canada"
       company_postfix: " Ltd"
       currency: "CAD"
       region: "Americas"
-  MX:
+    MX:
       shortname: "MX"
       name: "Mexico"
       company_postfix: " Ltd"
       currency: "MXN"
       region: "Americas"
-  BR:
+    BR:
       shortname: "BR"
       name: "Hungary"
       company_postfix: " Ltd"
       currency: "BRR"
       region: "Americas"
-  AR:
+    AR:
       shortname: "AR"
       name: "Argentina"
       company_postfix: " Ltd"
       currency: "ARS"
       region: "Americas"
-  AU:
+    AU:
       shortname: "AU"
       name: "Australia"
       company_postfix: " Ltd"
       currency: "AUD"
       region: "APAC"
-  JP:
+    JP:
       shortname: "JP"
       name: "Japan"
       company_postfix: " ltd"
       currency: "JPY"
       region: "APAC"
-  NZ:
+    NZ:
       shortname: "NZ"
       name: "New Zealand"
       company_postfix: " ltd"

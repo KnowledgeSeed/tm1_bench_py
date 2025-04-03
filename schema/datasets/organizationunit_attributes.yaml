@@ -7,7 +7,7 @@ dev:
   data:
     Country:
       method: "function"
-      callable: df_generator_for_dataset._random_from_variable_list
+      callable: df_generator_for_dataset._index_from_variable_list
       params:
         variable_path: "variables.countries"
     Currency:
