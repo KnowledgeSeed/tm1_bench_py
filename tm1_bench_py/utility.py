@@ -6,8 +6,23 @@ import string
 import pandas as pd
 from tm1_bench_py import exec_metrics_logger, basic_logger
 import re
-from typing import Callable, List, Dict, Optional, Any, Union, Iterator, Tuple
+from typing import List, Dict
 from TM1py import TM1Service
+import configparser
+from pathlib import Path
+
+# ------------------------------------------------------------------------------------------------------------
+# Utility: Tm1 service creator
+# ------------------------------------------------------------------------------------------------------------
+
+def tm1_connection():
+    """Creates a TM1 connection before tests and closes it after all tests."""
+    config = configparser.ConfigParser()
+    config.read(Path(__file__).parent.joinpath('config.ini'))
+
+    tm1 = TM1Service(**config['testbench'])
+    return tm1
+
 
 # ------------------------------------------------------------------------------------------------------------
 # Utility: Logging helper functions

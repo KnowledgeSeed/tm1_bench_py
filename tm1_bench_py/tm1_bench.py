@@ -1,24 +1,10 @@
-from pathlib import Path
-import configparser
-from TM1py import TM1Service, SubsetService
-from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Subset
-from more_itertools.more import substrings
-
-import utility as utility
+from TM1py import TM1Service
+from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube
 import os
 import yaml
 import importlib
 from typing import Dict, List, Any, Callable
-from tm1_bench_py import basic_logger, df_generator_for_dataset
-
-
-def tm1_connection():
-    """Creates a TM1 connection before tests and closes it after all tests."""
-    config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.joinpath('config.ini'))
-
-    tm1 = TM1Service(**config['testbench'])
-    return tm1
+from tm1_bench_py import basic_logger, df_generator_for_dataset, utility,dimension_period_builder
 
 class SchemaLoader:
     def __init__(self, schema_dir: str):
@@ -169,7 +155,6 @@ def create_dimensions(tm1: TM1Service, schema, env):
         for dimension in schema['dimensions'][template_type]:
             dimension_name = schema['dimensions'][template_type][dimension][env]['dimension_name']
             basic_logger.info(f" {dimension_name} is creating..." )
-            print(dimension_name)
             match template_type:
                 case "elementlist":
                     edges = schema['dimensions'][template_type][dimension][env]['edges']
@@ -223,6 +208,7 @@ def create_cubes(tm1: TM1Service, schema, env):
         rule_str = '\r\n'.join(cube_rules) + '\r\n'
         tm1.cubes.update_or_create_rules(cube_name=cube_name, rules=rule_str)
 
+@utility.log_exec_metrics
 def generate_data(tm1: TM1Service, schema, env, system_defaults):
     for datasets in schema['datasets']:
         dataset_template = schema['datasets'][datasets][env]
@@ -252,26 +238,57 @@ def generate_data(tm1: TM1Service, schema, env, system_defaults):
             slice_size_of_dataframe=slice_size_of_dataframe
         )
 
-if __name__ == '__main__':
+@utility.log_exec_metrics
+def build_model(tm1: TM1Service, schema, env, system_defaults):
+    if tm1 is None:
+        tm1 = utility.tm1_connection()
+
     # Get the directory where your script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # Navigate one level up to project_folder/
     parent_dir = os.path.dirname(script_dir)
     # Create the absolute path to your schema directory
     schema_dir = os.path.join(parent_dir, "schema")
+    if schema is None:
+        loader = SchemaLoader(schema_dir)
+        schema = loader.load_schema()
 
-    loader = SchemaLoader(schema_dir)
-    schema = loader.load_schema()
+    if env is None:
+        _ENV = schema['config']['default_yaml_env']
 
-    tm1 = tm1_connection()
-
-    #CONSTANTS
-    _ENV = schema['config']['default_yaml_env']
-    _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
+    if system_defaults is None:
+        _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
 
     try:
-        create_dimensions(tm1, schema, _ENV)
-        create_cubes(tm1, schema, _ENV)
-        generate_data(tm1, schema, _ENV, _DEFAULT_DF_TO_CUBE_KWARGS)
+        create_dimensions(tm1, schema, env)
+        create_cubes(tm1, schema, env)
+        generate_data(tm1, schema, env, system_defaults)
+    finally:
+        tm1.logout()
+
+@utility.log_exec_metrics
+def delete_dimensions(tm1: TM1Service, schema, env):
+    for template_type in schema['dimensions']:
+        for dimension in schema['dimensions'][template_type]:
+            dimension_name = schema['dimensions'][template_type][dimension][env]['dimension_name']
+            dimension = Dimension(name=dimension_name)
+            if tm1.dimensions.exists(dimension):
+                tm1.dimensions.delete(dimension)
+
+@utility.log_exec_metrics
+def delete_cubes(tm1: TM1Service, schema, env):
+    for cubes in schema['cubes']:
+        cube_name = schema['cubes'][cubes][env]['name']
+        if tm1.cubes.exists(cube_name):
+            tm1.cubes.delete(cube_name)
+
+@utility.log_exec_metrics
+def destroy_model(tm1: TM1Service, schema, env):
+    if tm1 is None:
+        tm1 = utility.tm1_connection()
+
+    try:
+        delete_cubes(tm1, schema, env)
+        delete_dimensions(tm1, schema, env)
     finally:
         tm1.logout()

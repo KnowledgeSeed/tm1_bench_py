@@ -1,31 +1,16 @@
-from dataclasses import replace
-from typing import Callable, List, Dict, Optional, Any
 import pandas as pd
 import random
-from pathlib import Path
-import configparser
 import importlib
 from TM1py import TM1Service, SubsetService
 from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Subset
-import os
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 from tm1_bench_py import  exec_metrics_logger, basic_logger,tm1_bench, utility
 import re
 import itertools
-from tm1_bench import SubsetService, Subset
-import string
 
 # ------------------------------------------------------------------------------------------------------------
 # Utility: Subset utilities
 # ------------------------------------------------------------------------------------------------------------
-def tm1_connection():
-    """Creates a TM1 connection before tests and closes it after all tests."""
-    config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.joinpath('config.ini'))
-
-    tm1 = TM1Service(**config['testbench'])
-    return tm1
-
 def _create_subset_from_mdx(dimension: str,
                             hierarchy: str,
                             mdx: str ,
@@ -152,10 +137,8 @@ def _get_nested_value(schema: Dict[str, Any], path: str) -> Any:
         current = current[key]
     return current
 
-def _index_from_variable_list (**kwargs):
-    schema = kwargs['schema']
-    variable_path = kwargs['params']['variable_path']
-    index = kwargs['index']
+def _index_from_variable_list (schema: Dict[str, Any],params: Dict, index, **_kwargs) -> Any:
+    variable_path = params['variable_path']
     return_value = _get_nested_value(schema, variable_path)
 
     if return_value is None:
@@ -169,9 +152,8 @@ def _index_from_variable_list (**kwargs):
         print(keys[index], keys)
         return keys[index]
 
-def _random_from_variable_list (**kwargs):
-    schema = kwargs['schema']
-    variable_path = kwargs['params']['variable_path']
+def _random_from_variable_list (schema: Dict[str, Any],params: Dict, **_kwargs):
+    variable_path = params['variable_path']
 
     return_value = _get_nested_value(schema, variable_path)
     if return_value is None:
@@ -190,15 +172,12 @@ def _random_from_variable_list (**kwargs):
             return random.choice(keys)
 
 
-def _look_up_based_on_column_value(**kwargs):
-    row_data = kwargs['row_data']
-    cur_row_data = kwargs['cur_row_data']
-    referred_column = kwargs['params']['referred_column']
-    variable_path = kwargs['params']['variable_path']
-    variable_key = kwargs['params']['variable_key']
-    schema = kwargs['schema']
-    prefix = kwargs['params'].get('prefix')
-    postfix = kwargs['params'].get('postfix')
+def _look_up_based_on_column_value(row_data: pd.DataFrame, cur_row_data: Dict, params: Dict, schema: Dict[str, Any], **_kwargs) -> Any:
+    referred_column = params['referred_column']
+    variable_path = params['variable_path']
+    variable_key = params['variable_key']
+    prefix = params.get('prefix')
+    postfix = params.get('postfix')
     if prefix:
         pref = str(prefix)
     else: pref = ""
@@ -226,7 +205,7 @@ def _look_up_based_on_column_value(**kwargs):
                 variable_path = variable_path+"."+str(cur_values[n])+"."+variable_key
                 return pref + str(_get_nested_value(schema, variable_path)) + post
 
-def _generate_from_subset_MDX(params: Dict, mdx_cache: Dict, tm1: TM1Service, **_kwargs):
+def _generate_from_subset_mdx(params: Dict, mdx_cache: Dict, tm1: TM1Service, **_kwargs):
     dimension = params['dimension_name']
     hierarchy = params.get('hierarchy_name')
     subsetMDX = params['subsetMDX']
@@ -234,27 +213,26 @@ def _generate_from_subset_MDX(params: Dict, mdx_cache: Dict, tm1: TM1Service, **
     if hierarchy == None:
         hierarchy = dimension
 
-    if(subsetMDX not in mdx_cache):
+    if subsetMDX not in mdx_cache:
         subset_name = f"}}tm1bench_Random_Subset_{hash(subsetMDX)}"
         element_list = _create_subset_from_mdx(dimension=dimension, hierarchy=hierarchy, mdx=subsetMDX, tm1=tm1,
                                                subset_name=subset_name)
         mdx_cache[subsetMDX] = element_list
     return random.choice(mdx_cache[subsetMDX])
 
-def _getCapitalLetters(**kwargs) -> str:
+def _getCapitalLetters(cur_row_data: Dict, params: Dict, **_kwargs) -> str:
     """
     Extract and return only the capital letters from the input string
 
     :param string: Input string
     :return: String containing only capital letters from the original
     """
-    row_data = kwargs['cur_row_data']
-    apply_on_column = kwargs['params']['apply_on_column']
-    element = str(row_data[apply_on_column])
+    apply_on_column = params['apply_on_column']
+    element = str(cur_row_data[apply_on_column])
     return ''.join(c for c in element if c.isupper())
 
 
-def _random_number_based_on_statistic(**kwargs):
+def _random_number_based_on_statistic(params: Dict, **_kwargs):
     """
     Generate a random number with various distribution methods.
 
@@ -280,10 +258,10 @@ def _random_number_based_on_statistic(**kwargs):
         TypeError: If min_val or max_val are not numbers
     """
     #get kwargs
-    min_val = kwargs['params']['min_val']
-    max_val = kwargs['params']['max_val']
-    num_type = kwargs['params']['num_type']
-    distribution = kwargs['params']['distribution']
+    min_val = params['min_val']
+    max_val = params['max_val']
+    num_type = params['num_type']
+    distribution = params['distribution']
 
     # Validate input types
     if not (isinstance(min_val, (int, float)) and isinstance(max_val, (int, float))):
@@ -304,8 +282,8 @@ def _random_number_based_on_statistic(**kwargs):
     elif distribution.lower() == 'normal':
         # Normal (Gaussian) distribution
         # Requires mean and standard deviation
-        mean =  kwargs['params'].get('mean', (min_val + max_val) / 2)
-        std_dev =  kwargs['params'].get('std_dev', (max_val - min_val) / 6)
+        mean =  params.get('mean', (min_val + max_val) / 2)
+        std_dev =  params.get('std_dev', (max_val - min_val) / 6)
 
         while True:
             num = random.gauss(mean, std_dev)
@@ -315,7 +293,7 @@ def _random_number_based_on_statistic(**kwargs):
     elif distribution.lower() == 'exponential':
         # Exponential distribution
         # Requires lambda parameter (rate)
-        rate = kwargs['params'].get('distribution', 1.0)
+        rate = params.get('distribution', 1.0)
 
         while True:
             # Generate exponential distribution
@@ -326,7 +304,7 @@ def _random_number_based_on_statistic(**kwargs):
     elif distribution.lower() == 'triangular':
         # Triangular distribution
         # Requires mode (peak) parameter
-        mode = kwargs['params'].get('mode', (min_val + max_val) / 2)
+        mode = params.get('mode', (min_val + max_val) / 2)
 
         return random.triangular(min_val, max_val, mode)
 
@@ -360,7 +338,7 @@ def _generate_row_combinations(list_of_row_dictionaries, number_of_rows) -> List
         row_combinations = list(row_combinations)
     return row_combinations
 
-def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.DataFrame:
+def generate_dataframe(dataset_template: Dict[Any, Any], tm1:TM1Service, schema) -> pd.DataFrame:
     """
     Generate DataFrame based on the schema
 
@@ -391,6 +369,25 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
         method = dataset_template['data'][data]['method']
         params = dataset_template['data'][data]['params']
         index = 0
+
+        # Pre-resolve the function once per data column
+        generator_func = None
+        if method == 'function' and isinstance(callable_str, str):
+            try:
+                module_name, func_name = callable_str.rsplit('.', 1)
+                module = importlib.import_module(module_name)
+                generator_func = getattr(module, func_name)
+                basic_logger.debug(f"Successfully resolved generator function: {func_name} from {module_name}")
+            except (ImportError, AttributeError, ValueError) as e:
+                basic_logger.error(f"Error resolving function '{callable_str}' for data column '{data}': {e}",
+                                   exc_info=True)
+                basic_logger.warning(f"Skipping data column '{data}' due to function resolution error.")
+                continue  # Skip to the next data column
+        else:
+            basic_logger.warning(
+                f"Unsupported method '{method}' or invalid callable for data column '{data}'. Skipping.")
+            continue
+
         # Create a row dictionary
         for combination in rows:
             row_data = {}
@@ -407,11 +404,17 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
         # Add value column with generated value
             if method == 'function' and isinstance(callable_str, str):
                 try:
-                    # Split the string into module and function name
-                    module_name, func_name = callable_str.rsplit('.', 1)
-                    module = importlib.import_module(module_name)
-                    func = getattr(module, func_name)
-                    row_data['Value'] = func( cur_row_data = cur_row_data, row_data = df_row, schema = schema, params = params, tm1 = tm1, index = index, mdx_cache = mdx_cache )
+                    # Prepare kwargs for the generator function
+                    generator_kwargs = {
+                        'cur_row_data': cur_row_data.copy(),  # Pass a copy to prevent modification
+                        'schema': schema,
+                        'params': params,
+                        'tm1': tm1,
+                        'index': index,
+                        'row_data': df_row,
+                        'mdx_cache': mdx_cache
+                    }
+                    row_data['Value'] = generator_func(**generator_kwargs)
                 except Exception as e:
                     basic_logger.info(f"Error resolving function: {e}")
                     raise
@@ -419,35 +422,3 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
             df_row.append(row_data)
 
     return pd.DataFrame.from_dict(df_row)
-
-# Example usage and running tests
-def main():
-    # Get the directory where your script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Navigate one level up to project_folder/
-    parent_dir = os.path.dirname(script_dir)
-    # Create the absolute path to your schema directory
-    schema_dir = os.path.join(parent_dir, "schema")
-
-    loader = tm1_bench.SchemaLoader(schema_dir)
-    schema = loader.load_schema()
-
-    tm1 = tm1_connection()
-    tst_yaml_content = schema['datasets']['product_attributes']['dev']
-
-    dataset = generate_dataframe(tst_yaml_content, tm1, schema)
-
-    utility._dataframe_to_cube_default(
-        tm1_service=tm1,
-        dataframe=dataset,
-        cube_name=schema['datasets']['product_attributes']['dev']['targetCube'],
-        cube_dims= [ "testbenchProduct","}ElementAttributes_testbenchProduct"],
-        use_ti = False,
-        use_blob = True,
-        increment = False,
-        async_write = True,
-        slice_size_of_dataframe= 50000
-    )
-
-if __name__ == '__main__':
-    main()

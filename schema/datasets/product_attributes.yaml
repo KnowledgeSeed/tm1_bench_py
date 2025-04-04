@@ -12,7 +12,7 @@ dev:
         variable_path: "variables.product_size"
     AccountType:
       method: "function"
-      callable: df_generator_for_dataset._generate_from_subset_MDX
+      callable: df_generator_for_dataset._generate_from_subset_mdx
       params:
         dimension_name: "testbenchAccount"
         # Use a block scalar - no escaping needed for quotes inside
