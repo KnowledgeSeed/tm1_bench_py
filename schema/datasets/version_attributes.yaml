@@ -1,7 +1,7 @@
 dev:
   targetCube: "}ElementAttributes_testbenchVersion"
   rows:
-    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}*{[testbenchPeriod].[testbenchPeriod].[202401],[testbenchPeriod].[testbenchPeriod].[202402]}"
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchVersion].[testbenchVersion])}, 0)}"
     number_of_rows: -1
   data_colum_dimension: "}ElementAttributes_testbenchVersion"
   data:

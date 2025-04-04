@@ -226,19 +226,20 @@ def _look_up_based_on_column_value(**kwargs):
                 variable_path = variable_path+"."+str(cur_values[n])+"."+variable_key
                 return pref + str(_get_nested_value(schema, variable_path)) + post
 
-def _generate_from_subset_MDX(**kwargs):
-    dimension = kwargs['params']['dimension_name']
-    hierarchy = kwargs['params'].get('hierarchy_name')
-    subsetMDX = kwargs['params']['subsetMDX']
-    tm1 = kwargs['tm1']
+def _generate_from_subset_MDX(params: Dict, mdx_cache: Dict, tm1: TM1Service, **_kwargs):
+    dimension = params['dimension_name']
+    hierarchy = params.get('hierarchy_name')
+    subsetMDX = params['subsetMDX']
 
     if hierarchy == None:
         hierarchy = dimension
 
-    subset_name = f"}}tm1bench_Random_Subset_{hash(subsetMDX)}"
-
-    element_list =_create_subset_from_mdx(dimension=dimension, hierarchy=hierarchy, mdx=subsetMDX, tm1 = tm1, subset_name = subset_name)
-    return random.choice(element_list)
+    if(subsetMDX not in mdx_cache):
+        subset_name = f"}}tm1bench_Random_Subset_{hash(subsetMDX)}"
+        element_list = _create_subset_from_mdx(dimension=dimension, hierarchy=hierarchy, mdx=subsetMDX, tm1=tm1,
+                                               subset_name=subset_name)
+        mdx_cache[subsetMDX] = element_list
+    return random.choice(mdx_cache[subsetMDX])
 
 def _getCapitalLetters(**kwargs) -> str:
     """
@@ -370,6 +371,7 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
     number_of_rows = dataset_template['rows']['number_of_rows']
     #split the mdx if it is a product of multiple dimension
     row_mdx_list = _split_mdx_string(rows_mdx)
+    mdx_cache = {}
 
     list_of_row_dictionaries = []
     for mdx in row_mdx_list:
@@ -409,7 +411,7 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1, schema) -> pd.Data
                     module_name, func_name = callable_str.rsplit('.', 1)
                     module = importlib.import_module(module_name)
                     func = getattr(module, func_name)
-                    row_data['Value'] = func( cur_row_data = cur_row_data, row_data = df_row, schema = schema, params = params, tm1 = tm1, index = index )
+                    row_data['Value'] = func( cur_row_data = cur_row_data, row_data = df_row, schema = schema, params = params, tm1 = tm1, index = index, mdx_cache = mdx_cache )
                 except Exception as e:
                     basic_logger.info(f"Error resolving function: {e}")
                     raise
@@ -431,15 +433,15 @@ def main():
     schema = loader.load_schema()
 
     tm1 = tm1_connection()
-    tst_yaml_content = schema['datasets']['organizationunit_attributes']['dev']
+    tst_yaml_content = schema['datasets']['product_attributes']['dev']
 
     dataset = generate_dataframe(tst_yaml_content, tm1, schema)
 
     utility._dataframe_to_cube_default(
         tm1_service=tm1,
         dataframe=dataset,
-        cube_name=schema['datasets']['organizationunit_attributes']['dev']['targetCube'],
-        cube_dims= [ "testbenchOrganizationUnit","}ElementAttributes_testbenchOrganizationUnit"],
+        cube_name=schema['datasets']['product_attributes']['dev']['targetCube'],
+        cube_dims= [ "testbenchProduct","}ElementAttributes_testbenchProduct"],
         use_ti = False,
         use_blob = True,
         increment = False,

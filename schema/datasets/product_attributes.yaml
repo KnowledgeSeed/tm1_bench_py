@@ -15,4 +15,6 @@ dev:
       callable: df_generator_for_dataset._generate_from_subset_MDX
       params:
         dimension_name: "testbenchAccount"
-        subsetMDX: "{[testbenchAccount].[testbenchAccount].Members}"
+        # Use a block scalar - no escaping needed for quotes inside
+        subsetMDX: >-
+          {TM1FILTERBYPATTERN({TM1FILTERBYPATTERN({TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchAccount].[testbenchAccount])}, 0)}, "PnL","StatementType")}, "Revenue","Type")}

@@ -25,7 +25,7 @@ dev:
 unit_test:
   targetCube: "}ElementAttributes_testbenchAccount"
   rows:
-    mdx: "{HEAD({TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchAccount].[testbenchAccount])}, 0)},5)}"
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchAccount].[testbenchAccount])}, 0)}"
     number_of_rows: -1
   data_colum_dimension: "}ElementAttributes_testbenchAccount"
   data:

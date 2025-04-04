@@ -270,8 +270,8 @@ if __name__ == '__main__':
     _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
 
     try:
-        #create_dimensions(tm1, schema, _ENV)
-        #create_cubes(tm1, schema, _ENV)
+        create_dimensions(tm1, schema, _ENV)
+        create_cubes(tm1, schema, _ENV)
         generate_data(tm1, schema, _ENV, _DEFAULT_DF_TO_CUBE_KWARGS)
     finally:
         tm1.logout()

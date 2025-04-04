@@ -76,13 +76,19 @@ countries:
       company_postfix: " Kft."
       currency: "EUR"
       region: "EMEA"
+    SP:
+      shortname: "SP"
+      name: "Spain"
+      company_postfix: " ltd."
+      currency: "EUR"
+      region: "EMEA"
     SW:
       shortname: "SW"
       name: "Sweden"
       company_postfix: " ltd."
       currency: "EUR"
       region: "EMEA"
-    NO:
+    "NO":
       shortname: "NO"
       name: "Norway"
       company_postfix: " ltd."
@@ -114,7 +120,7 @@ countries:
       region: "Americas"
     BR:
       shortname: "BR"
-      name: "Hungary"
+      name: "Brasil"
       company_postfix: " Ltd"
       currency: "BRR"
       region: "Americas"

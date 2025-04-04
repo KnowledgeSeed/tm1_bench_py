@@ -54,5 +54,5 @@ dev:
   attributes: [
     {"name": "NameLong", "attribute_type": "Alias"},
     {"name": "Country", "attribute_type": "Alias"},
-    {"name": "Currency", "attribute_type": "Alias"}
+    {"name": "Currency", "attribute_type": "String"}
   ]
