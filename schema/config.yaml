@@ -6,3 +6,12 @@ df_to_cube_default_kwargs:
   slice_size_of_dataframe: 50000
   use_blob: True
   use_ti: False
+paths:
+  dimensions_elementlist: 'dimensions/elementlist'
+  dimensions_df_templates: 'dimensions/df_templates'
+  dimensions_custom: 'dimensions/custom'
+  cubes: 'cubes'
+  datasets: 'datasets'
+  # Assuming config.yaml and variables.yaml are in the root schema_dir
+  config: '.'
+  variables: '.'
