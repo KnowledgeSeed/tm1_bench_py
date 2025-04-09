@@ -1,30 +1,36 @@
+# Define reusable parts
+default_elements: &default_elements
+  NumberOfElements: 10000
+  ElementPrefix: "P"
+  ElementLength: 8
+  Method: "enumerate"
+
+default_levels: &default_levels
+  - name: "level000"
+    constant_content: "All Product"
+  - name: "level001"
+    content_template:
+      Prefix: "ProductGroup"
+      Length: 2
+      Method: "enumerate"
+  - name: "level002"
+    content_template:
+      Prefix: "ProductSubCategory"
+      Length: 2
+      Method: "enumerate"
+
+default_attributes: &default_attributes
+  - "AccountType:s"
+  - "Size:s"
+
+# Define the main default using the parts
 default: &defaults
   dimension_name: "testbenchProduct"
-  df_template: {
-    "elements":{
-      "NumberOfElements": 10000,
-      "ElementPrefix": "P",
-      "ElementLength": 8,
-      "Method": "enumerate"
-    },
-    "levels": [
-      { "name": "level000",
-        "constant_content": "All Product" },
-      { "name": "level001",
-        "content_template":
-          { "Prefix": "ProductGroup",
-            "Length": 2,
-            "Method": "enumerate" }
-      },
-      { "name": "level002",
-        "content_template":
-          { "Prefix": "ProductSubCategory",
-            "Length": 2,
-            "Method": "enumerate" }
-      }
-    ],
-    "attributes": ["AccountType:s","Size:s"]
-  }
+  df_template:
+    elements: *default_elements
+    levels: *default_levels
+    attributes: *default_attributes
+#Defind Tm1 bedrock test cases
 bedrock_test_10000:
   <<: *defaults
   "NumberOfElements": 100

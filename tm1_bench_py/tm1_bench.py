@@ -269,9 +269,8 @@ def delete_dimensions(tm1: TM1Service, schema):
     for template_type in schema['dimensions']:
         for dimension in schema['dimensions'][template_type]:
             dimension_name = schema['dimensions'][template_type][dimension]['dimension_name']
-            dimension_obj = Dimension(name=dimension_name)
-            if tm1.dimensions.exists(dimension_obj):
-                tm1.dimensions.delete(dimension_obj)
+            if tm1.dimensions.exists(dimension_name):
+                tm1.dimensions.delete(dimension_name)
 
 @utility.log_exec_metrics
 def delete_cubes(tm1: TM1Service, schema):
