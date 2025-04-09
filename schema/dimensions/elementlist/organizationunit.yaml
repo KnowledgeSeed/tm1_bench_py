@@ -1,4 +1,4 @@
-dev:
+default: &defaults
   dimension_name: "testbenchOrganizationUnit"
   elements: [
           { "name": "Group", "element_type": "Consolidated" },
@@ -56,3 +56,19 @@ dev:
     {"name": "Country", "attribute_type": "Alias"},
     {"name": "Currency", "attribute_type": "String"}
   ]
+bedrock_test_10000:
+  <<: *defaults
+bedrock_test_50000:
+  <<: *defaults
+bedrock_test_100000:
+  <<: *defaults
+bedrock_test_250000:
+  <<: *defaults
+bedrock_test_500000:
+  <<: *defaults
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults

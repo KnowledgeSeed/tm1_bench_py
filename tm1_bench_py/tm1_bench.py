@@ -1,13 +1,13 @@
 from TM1py import TM1Service
-from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube
+from TM1py.Objects import Dimension, Cube
 import os
 import yaml
 import importlib
-from typing import Dict, List, Any, Callable
-from tm1_bench_py import basic_logger, df_generator_for_dataset, utility,dimension_period_builder
+from typing import Dict, List, Any
+from tm1_bench_py import basic_logger, df_generator_for_dataset, utility,dimension_builder
 
 class SchemaLoader:
-    def __init__(self, schema_dir: str):
+    def __init__(self, schema_dir: str, env: str):
         self.schema_dir = schema_dir
         self.dimensions = {
             'elementlist': {},
@@ -18,166 +18,167 @@ class SchemaLoader:
         self.datasets = {}
         self.config = {}
         self.variables = {}
-        self.generator_cache = {}
+        self.env = env
+
+    def _load_yaml_file(self, relative_path: str, filename: str) -> Dict[str, Any]:
+        """Helper to load a single YAML file with error handling."""
+        base_path = self.config.get('paths', {}).get(relative_path, relative_path)  # Use configured path
+        full_path = os.path.join(self.schema_dir, base_path, f"{filename}.yaml")
+        try:
+            with open(full_path, 'r') as f:
+                return yaml.safe_load(f)
+        except FileNotFoundError:
+            basic_logger.error(f"Schema file not found: {full_path}")
+            return {}
+        except yaml.YAMLError as e:
+            basic_logger.error(f"Error parsing YAML file {full_path}: {e}")
+            return {}
+
+    def _load_env_specific_yaml(self, relative_path: str, filename: str) -> Dict[str, Any]:
+        """Loads YAML and extracts the environment-specific section."""
+        loaded_content = self._load_yaml_file(relative_path, filename)
+        if loaded_content is None:
+            return {}
+
+        if self.env not in loaded_content:
+            full_path = os.path.join(self.schema_dir, self.config.get('paths', {}).get(relative_path, relative_path),
+                                     f"{filename}.yaml")
+            basic_logger.error(f"Environment key '{self.env}' not found in {full_path}")
+            return {}
+
+        return loaded_content[self.env]
 
     def load_schema(self) -> Dict[str, Any]:
-        """Load the main schema file and all referenced files"""
+        """Load the main schema file and all referenced files, filtering by environment."""
         main_schema_path = os.path.join(self.schema_dir, 'schema.yaml')
-        with open(main_schema_path, 'r') as f:
-            main_schema = yaml.safe_load(f)
+        try:
+            with open(main_schema_path, 'r') as f:
+                main_schema = yaml.safe_load(f)
+        except FileNotFoundError:
+            basic_logger.error(f"Main schema file not found: {main_schema_path}")
+            raise
+        except yaml.YAMLError as e:
+            basic_logger.error(f"Error parsing main schema file {main_schema_path}: {e}")
+            raise
 
-        # Load datasets by type
-        self._load_config(main_schema['import']['config'])
+        # --- Load config FIRST to get env and paths ---
+        config_schema_path = os.path.join(self.schema_dir, 'config.yaml')
+        try:
+            with open(config_schema_path, 'r') as f:
+                self.config = yaml.safe_load(f)
+        except FileNotFoundError:
+            basic_logger.error(f"Config file not found: {main_schema_path}")
+            raise
+        except yaml.YAMLError as e:
+            basic_logger.error(f"Error parsing config file {main_schema_path}: {e}")
+            raise
+        if self.config is None or 'default_yaml_env' not in self.config:
+             raise ValueError("Failed to load config or 'default_yaml_env' missing in config.yaml")
+        if self.env == '':
+            self.env = self.config['default_yaml_env']
+            basic_logger.info(f"Loading schema for environment: '{self.env}'")
 
-        # Load datasets by type
-        self._load_variables(main_schema['import']['variables'])
+        # Validate paths configuration exists
+        if 'paths' not in self.config:
+             basic_logger.warning("'paths' section missing in config.yaml, using default hardcoded paths.")
 
-        config_path = os.path.join(self.schema_dir, 'config.yaml')
-        with open(config_path, 'r') as f:
-            conf = yaml.safe_load(f)
-        env = conf['default_yaml_env']
-        # Load dimensions by type
-        self._load_dimensions(main_schema['import']['dimensions'])
+        # Load variables (not environment specific)
+        variables_filename = main_schema.get('import', {}).get('variables', ["variables"])
+        self.variables = self._load_yaml_file('variables', variables_filename)
+        if self.variables is None:
+             basic_logger.warning(f"Failed to load variables file: {variables_filename}.yaml. Proceeding without variables.")
+             self.variables = {}
 
-        # Load cubes by type
-        self._load_cubes(main_schema['import']['cubes'], env)
+        # --- Load dimensions, cubes, datasets using the determined env ---
+        dimension_imports = main_schema.get('import', {}).get('dimensions', {})
+        self._load_dimensions(dimension_imports)
 
-        # Load datasets by type
-        self._load_datasets(main_schema['import']['datasets'])
+        cube_imports = main_schema.get('import', {}).get('cubes', [])
+        self._load_cubes(cube_imports)
+
+        dataset_imports = main_schema.get('import', {}).get('datasets', [])
+        self._load_datasets(dataset_imports)
 
         return {
             'dimensions': self.dimensions,
             'cubes': self.cubes,
             'datasets': self.datasets,
             'variables': self.variables,
-            'config': self.config
+            'config': self.config,
+            'env': self.env
         }
 
     def _load_dimensions(self, dimension_refs: Dict[str, List[str]]) -> None:
-        """Load all dimension definitions by type"""
-        # Load elementlist dimensions
-        for dim_name in dimension_refs.get('elementlist', []):
-            path = os.path.join(self.schema_dir, 'dimensions', 'elementlist', f"{dim_name}.yaml")
-            with open(path, 'r') as f:
-                self.dimensions['elementlist'][dim_name] = yaml.safe_load(f)
+        """Load all dimension definitions by type, extracting env-specific config."""
+        for dim_type, path_key_suffix in [
+            ('elementlist', 'dimensions_elementlist'),
+            ('df_templates', 'dimensions_df_templates'),
+            ('custom', 'dimensions_custom')
+        ]:
+            path_key = path_key_suffix # Directly use the key from config.yaml paths
+            for dim_name in dimension_refs.get(dim_type, []):
+                 env_specific_content = self._load_env_specific_yaml(path_key, dim_name)
+                 if env_specific_content:
+                     # Store only the env-specific part
+                     self.dimensions[dim_type][dim_name] = env_specific_content
+                 else:
+                      basic_logger.warning(f"Skipping dimension '{dim_name}' of type '{dim_type}' due to loading error or missing env key '{self.env}'.")
 
-        # Load template dimensions
-        for dim_name in dimension_refs.get('df_templates', []):
-            path = os.path.join(self.schema_dir, 'dimensions', 'df_templates', f"{dim_name}.yaml")
-            with open(path, 'r') as f:
-                self.dimensions['df_templates'][dim_name] = yaml.safe_load(f)
+    def _load_cubes(self, cube_refs: List[str]) -> None:
+        """Load all cube definitions, extracting env-specific config."""
+        path_key = 'cubes' # Key from config.yaml paths
+        for cube_file_name in cube_refs: # cube_refs is now just a list of filenames
+            env_specific_content = self._load_env_specific_yaml(path_key, cube_file_name)
+            if env_specific_content:
+                 # Use the 'name' defined *inside* the env block as the key
+                 cube_name = env_specific_content.get('name')
+                 if cube_name:
+                      self.cubes[cube_name] = env_specific_content
+                 else:
+                      basic_logger.error(f"Cube definition in '{cube_file_name}.yaml' for env '{self.env}' is missing the required 'name' key.")
+            else:
+                 basic_logger.warning(f"Skipping cube definition '{cube_file_name}' due to loading error or missing env key '{self.env}'.")
 
-        # Load custom dimensions
-        for dim_name in dimension_refs.get('custom', []):
-            path = os.path.join(self.schema_dir, 'dimensions', 'custom', f"{dim_name}.yaml")
-            with open(path, 'r') as f:
-                self.dimensions['custom'][dim_name] = yaml.safe_load(f)
 
-    def _load_cubes(self, cube_refs: Dict[str, List[str]], env) -> None:
-        """Load all cube definitions by type"""
-        for cube_name in cube_refs:
-            path = os.path.join(self.schema_dir, 'cubes', f"{cube_name}.yaml")
-            with open(path, 'r') as f:
-                cube = yaml.safe_load(f)
-                cube_name = cube[env]['name']
-                self.cubes[cube_name] = cube
-
-    def _load_datasets(self, datasets_refs: Dict[str, List[str]]) -> None:
-        """Load all dataset definitions by type"""
-        for dataset in datasets_refs:
-            path = os.path.join(self.schema_dir, 'datasets', f"{dataset}.yaml")
-            with open(path, 'r') as f:
-                self.datasets[dataset] = yaml.safe_load(f)
-
-    def _load_config(self, config_refs: Dict[str, Any]) -> None:
-        """Load config definitions"""
-        path = os.path.join(self.schema_dir, "config.yaml")
-        if os.path.exists(path):
-            with open(path, 'r') as f:
-                self.config = yaml.safe_load(f)
-
-    def _load_variables(self, variables_refs: Dict[str, Any]) -> None:
-        """Load variables definitions"""
-        path = os.path.join(self.schema_dir, "variables.yaml")
-        if os.path.exists(path):
-            with open(path, 'r') as f:
-                self.variables = yaml.safe_load(f)
-
-    def get_generator(self, generator_path: str) -> Callable:
-        """Dynamically import a custom generator class"""
-        if generator_path in self.generator_cache:
-            return self.generator_cache[generator_path]
-
-        module_path, class_name = generator_path.rsplit('.', 1)
-        module = importlib.import_module(module_path)
-        generator_class = getattr(module, class_name)
-        self.generator_cache[generator_path] = generator_class
-        return generator_class
-
-# generate from Tm1 element, Hierarchy and Dimension Object a dimension
-@utility.log_exec_metrics
-def create_dimension_from_elementlist(dimension_name,elements_dic,edges,element_attributes_dic,tm1):
-    elements = []
-    for i in range(len(elements_dic)):
-        elements.append(Element(name=elements_dic[i].get("name"), element_type=elements_dic[i].get("element_type")))
-    print(elements)
-    element_attributes = []
-    for i in range(len(element_attributes_dic)):
-        element_attributes.append(ElementAttribute(name=element_attributes_dic[i].get("name"),
-                                                   attribute_type=element_attributes_dic[i].get("attribute_type")))
-    hierarchy = Hierarchy(name=dimension_name, dimension_name=dimension_name, elements=elements,
-                          element_attributes=element_attributes,
-                          edges=edges)
-    dimension = Dimension(name=dimension_name, hierarchies=[hierarchy])
-    tm1.dimensions.update_or_create(dimension)
-
-# generate df for the input https://github.com/cubewise-code/tm1py/blob/master/TM1py/Services/HierarchyService.py in update_or_create_hierarchy_from_dataframe
-@utility.log_exec_metrics
-def create_dimension_from_dataframe_template(tm1,df_template,dimension_name):
-    # Generate hierarchy based on template
-    hierarchy_dict = utility.generate_hierarchy_dictionary(df_template)
-
-    #this will print only if debug is the logging mode
-    utility._print_limited_nested_dictionary(hierarchy_dict)
-    total_elements = utility._count_nested_dictionary_elements(hierarchy_dict)
-    basic_logger.info(f"\nTotal elements in hierarchy: {total_elements}")
-
-    # Create the DataFrame
-    result_df = utility.hierarchy_to_dataframe(df_template,hierarchy_dict)
-
-    tm1.hierarchies.update_or_create_hierarchy_from_dataframe(
-        dimension_name=dimension_name,hierarchy_name=dimension_name,df=result_df,
-        element_column="element_id",element_type_column="element_type",verify_unique_elements=True,verify_edges=True)
+    def _load_datasets(self, datasets_refs: List[str]) -> None:
+        """Load all dataset definitions, extracting env-specific config."""
+        path_key = 'datasets' # Key from config.yaml paths
+        for dataset_name in datasets_refs:
+             env_specific_content = self._load_env_specific_yaml(path_key, dataset_name)
+             if env_specific_content:
+                  self.datasets[dataset_name] = env_specific_content
+             else:
+                  basic_logger.warning(f"Skipping dataset '{dataset_name}' due to loading error or missing env key '{self.env}'.")
 
 @utility.log_exec_metrics
-def create_dimensions(tm1: TM1Service, schema, env):
+def create_dimensions(tm1: TM1Service, schema):
     for template_type in schema['dimensions']:
         for dimension in schema['dimensions'][template_type]:
-            dimension_name = schema['dimensions'][template_type][dimension][env]['dimension_name']
+            dimension_name = schema['dimensions'][template_type][dimension]['dimension_name']
             basic_logger.info(f" {dimension_name} is creating..." )
             match template_type:
                 case "elementlist":
-                    edges = schema['dimensions'][template_type][dimension][env]['edges']
+                    edges = schema['dimensions'][template_type][dimension]['edges']
                     edges_dict = {}
                     if edges:
-                        for parent, child, value in schema['dimensions'][template_type][dimension][env]['edges']:
+                        for parent, child, value in schema['dimensions'][template_type][dimension]['edges']:
                             edges_dict[(parent, child)] = value
-                    create_dimension_from_elementlist (
+                    dimension_builder.create_dimension_from_element_list (
                         dimension_name = dimension_name,
                         tm1 = tm1,
-                        elements_dic = schema['dimensions'][template_type][dimension][env]['elements'],
+                        elements_dic = schema['dimensions'][template_type][dimension]['elements'],
                         edges = edges_dict,
-                        element_attributes_dic = schema['dimensions'][template_type][dimension][env]['attributes']
+                        element_attributes_dic = schema['dimensions'][template_type][dimension]['attributes']
                     )
                 case "df_templates":
-                    create_dimension_from_dataframe_template(
+                    dimension_builder.create_dimension_from_dataframe_template(
                     dimension_name=dimension_name,
                     tm1=tm1,
-                    df_template = schema['dimensions'][template_type][dimension][env]['df_template']
+                    df_template = schema['dimensions'][template_type][dimension]['df_template']
                     )
                 case "custom":
-                    func = schema['dimensions'][template_type][dimension][env]['callable']
-                    kwargs = schema['dimensions'][template_type][dimension][env]['kwargs']
+                    func = schema['dimensions'][template_type][dimension]['callable']
+                    kwargs = schema['dimensions'][template_type][dimension]['kwargs']
                     if isinstance(func, str):
                         try:
                             # Split the string into module and function name
@@ -197,28 +198,28 @@ def create_dimensions(tm1: TM1Service, schema, env):
             basic_logger.info(f" {dimension_name} is created.")
 
 @utility.log_exec_metrics
-def create_cubes(tm1: TM1Service, schema, env):
+def create_cubes(tm1: TM1Service, schema):
     for cubes in schema['cubes']:
         print(cubes)
-        cube_name = schema['cubes'][cubes][env]['name']
-        cube_dimensions = schema['cubes'][cubes][env]['dimensions']
-        cube_rules = schema['cubes'][cubes][env]['rules']
+        cube_name = schema['cubes'][cubes]['name']
+        cube_dimensions = schema['cubes'][cubes]['dimensions']
+        cube_rules = schema['cubes'][cubes]['rules']
         cube = Cube(name=cube_name, dimensions=cube_dimensions)
         tm1.cubes.update_or_create(cube)
         rule_str = '\r\n'.join(cube_rules) + '\r\n'
         tm1.cubes.update_or_create_rules(cube_name=cube_name, rules=rule_str)
 
 @utility.log_exec_metrics
-def generate_data(tm1: TM1Service, schema, env, system_defaults):
+def generate_data(tm1: TM1Service, schema, system_defaults):
     for datasets in schema['datasets']:
-        dataset_template = schema['datasets'][datasets][env]
-        target_cube = schema['datasets'][datasets][env]['targetCube']
+        dataset_template = schema['datasets'][datasets]
+        target_cube = schema['datasets'][datasets]['targetCube']
         if target_cube.startswith('}ElementAttributes_'):
             pos = target_cube.find('_')
             dim_name = target_cube[pos + 1:]
             cube_dims = [dim_name, target_cube]
         else:
-            cube_dims = schema['cubes'][target_cube][env]['dimensions']
+            cube_dims = schema['cubes'][target_cube]['dimensions']
         async_write = system_defaults['async_write']
         slice_size_of_dataframe = system_defaults['slice_size_of_dataframe']
         use_ti=system_defaults['use_ti']
@@ -239,7 +240,7 @@ def generate_data(tm1: TM1Service, schema, env, system_defaults):
         )
 
 @utility.log_exec_metrics
-def build_model(tm1: TM1Service, schema, env, system_defaults):
+def build_model(tm1: TM1Service, schema, system_defaults, env):
     if tm1 is None:
         tm1 = utility.tm1_connection()
 
@@ -250,45 +251,42 @@ def build_model(tm1: TM1Service, schema, env, system_defaults):
     # Create the absolute path to your schema directory
     schema_dir = os.path.join(parent_dir, "schema")
     if schema is None:
-        loader = SchemaLoader(schema_dir)
+        loader = SchemaLoader(schema_dir, env)
         schema = loader.load_schema()
-
-    if env is None:
-        _ENV = schema['config']['default_yaml_env']
 
     if system_defaults is None:
         _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
 
     try:
-        create_dimensions(tm1, schema, env)
-        create_cubes(tm1, schema, env)
-        generate_data(tm1, schema, env, system_defaults)
+        create_dimensions(tm1, schema)
+        create_cubes(tm1, schema)
+        generate_data(tm1, schema, system_defaults)
     finally:
         tm1.logout()
 
 @utility.log_exec_metrics
-def delete_dimensions(tm1: TM1Service, schema, env):
+def delete_dimensions(tm1: TM1Service, schema):
     for template_type in schema['dimensions']:
         for dimension in schema['dimensions'][template_type]:
-            dimension_name = schema['dimensions'][template_type][dimension][env]['dimension_name']
-            dimension = Dimension(name=dimension_name)
-            if tm1.dimensions.exists(dimension):
-                tm1.dimensions.delete(dimension)
+            dimension_name = schema['dimensions'][template_type][dimension]['dimension_name']
+            dimension_obj = Dimension(name=dimension_name)
+            if tm1.dimensions.exists(dimension_obj):
+                tm1.dimensions.delete(dimension_obj)
 
 @utility.log_exec_metrics
-def delete_cubes(tm1: TM1Service, schema, env):
+def delete_cubes(tm1: TM1Service, schema):
     for cubes in schema['cubes']:
-        cube_name = schema['cubes'][cubes][env]['name']
+        cube_name = schema['cubes'][cubes]['name']
         if tm1.cubes.exists(cube_name):
             tm1.cubes.delete(cube_name)
 
 @utility.log_exec_metrics
-def destroy_model(tm1: TM1Service, schema, env):
+def destroy_model(tm1: TM1Service, schema):
     if tm1 is None:
         tm1 = utility.tm1_connection()
 
     try:
-        delete_cubes(tm1, schema, env)
-        delete_dimensions(tm1, schema, env)
+        delete_cubes(tm1, schema)
+        delete_dimensions(tm1, schema)
     finally:
         tm1.logout()

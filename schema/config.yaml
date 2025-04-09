@@ -1,4 +1,4 @@
-default_yaml_env: "dev"
+default_yaml_env: "default"
 df_to_cube_default_kwargs:
   clear_before_load: True
   clear_set: []
@@ -12,6 +12,4 @@ paths:
   dimensions_custom: 'dimensions/custom'
   cubes: 'cubes'
   datasets: 'datasets'
-  # Assuming config.yaml and variables.yaml are in the root schema_dir
-  config: '.'
-  variables: '.'
+  variables: ''

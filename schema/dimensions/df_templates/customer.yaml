@@ -1,15 +1,35 @@
-dev:
+default: &defaults
   dimension_name: "testbenchCustomer"
-  df_template: {
-    "elements":{
-      "NumberOfElements": 100000,
-      "ElementPrefix": "C",
-      "ElementLength": 8,
-      "Method": "enumerate"
-    },
-    "levels": [
-      {"name": "level000",
-       "constant_content": "All Customer"}
-    ],
-    "attributes": ["CountryOfOrigin:s", "Loyalty:s"]
-  }
+  df_template:
+    elements:
+      NumberOfElements: 100000
+      ElementPrefix: "C"
+      ElementLength: 8
+      Method: "enumerate"
+    levels:
+      - name: "level000"
+        constant_content: "All Customer"
+    attributes:
+      - "CountryOfOrigin:s"
+      - "Loyalty:s"
+try:
+  <<: *defaults
+  "NumberOfElements": 1000
+bedrock_test_50000:
+  <<: *defaults
+  "NumberOfElements": 1000
+bedrock_test_100000:
+  <<: *defaults
+  "NumberOfElements": 1000
+bedrock_test_250000:
+  <<: *defaults
+  "NumberOfElements": 10000
+bedrock_test_500000:
+  <<: *defaults
+  "NumberOfElements": 10000
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults

@@ -1,4 +1,4 @@
-dev:
+default: &defaults
   dimension_name: "testbenchProduct"
   df_template: {
     "elements":{
@@ -25,30 +25,25 @@ dev:
     ],
     "attributes": ["AccountType:s","Size:s"]
   }
-low_perf:
-  dimension_name: "testbenchProduct"
-  df_template: {
-    "elements":{
-      "NumberOfElements": 100,
-      "ElementPrefix": "P",
-      "ElementLength": 8,
-      "Method": "enumerate"
-    },
-    "levels": [
-      { "name": "level000",
-        "constant_content": "All Product" },
-      { "name": "level001",
-        "content_template":
-          { "Prefix": "ProductGroup",
-            "Length": 2,
-            "Method": "enumerate" }
-      },
-      { "name": "level002",
-        "content_template":
-          { "Prefix": "ProductSubCategory",
-            "Length": 2,
-            "Method": "enumerate" }
-      }
-    ],
-    "attributes": ["AccountType:s","Size:s"]
-  }
+bedrock_test_10000:
+  <<: *defaults
+  "NumberOfElements": 100
+bedrock_test_50000:
+  <<: *defaults
+  "NumberOfElements": 100
+  "Length": 1
+bedrock_test_100000:
+  <<: *defaults
+  "NumberOfElements": 1000
+bedrock_test_250000:
+  <<: *defaults
+  "NumberOfElements": 1000
+bedrock_test_500000:
+  <<: *defaults
+  "NumberOfElements": 1000
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults

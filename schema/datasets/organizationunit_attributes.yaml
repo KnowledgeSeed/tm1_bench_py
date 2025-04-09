@@ -1,4 +1,4 @@
-dev:
+default: &defaults
   targetCube: "}ElementAttributes_testbenchOrganizationUnit"
   rows:
     mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchOrganizationUnit].[testbenchOrganizationUnit])}, 0)}"
@@ -26,3 +26,19 @@ dev:
         referred_column: "Country"
         variable_path: "variables.countries"
         variable_key: "name"
+bedrock_test_10000:
+  <<: *defaults
+bedrock_test_50000:
+  <<: *defaults
+bedrock_test_100000:
+  <<: *defaults
+bedrock_test_250000:
+  <<: *defaults
+bedrock_test_500000:
+  <<: *defaults
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults

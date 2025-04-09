@@ -1,4 +1,4 @@
-dev:
+default: &defaults
   targetCube: "}ElementAttributes_testbenchAccount"
   rows:
     mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchAccount].[testbenchAccount])}, 0)}"
@@ -46,3 +46,19 @@ unit_test:
         referred_column: "Type"
         variable_path: "variables.pnl_account_type"
         variable_key: "sign"
+bedrock_test_10000:
+  <<: *defaults
+bedrock_test_50000:
+  <<: *defaults
+bedrock_test_100000:
+  <<: *defaults
+bedrock_test_250000:
+  <<: *defaults
+bedrock_test_500000:
+  <<: *defaults
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults

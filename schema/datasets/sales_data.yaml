@@ -1,4 +1,4 @@
-dev:
+default: &defaults
   targetCube: "testbenchSales"
   rows:
     mdx: "{[testbenchVersion].[testbenchVersion].[Actual]}* 
@@ -20,3 +20,35 @@ dev:
         distribution: "normal"
         mean: 65
         std_dev: 20
+bedrock_test_10000:
+  <<: *defaults
+  rows:
+    number_of_rows: 10000
+bedrock_test_50000:
+  <<: *defaults
+  rows:
+    number_of_rows: 50000
+bedrock_test_100000:
+  <<: *defaults
+  rows:
+    number_of_rows: 100000
+bedrock_test_250000:
+  <<: *defaults
+  rows:
+    number_of_rows: 250000
+bedrock_test_500000:
+  <<: *defaults
+  rows:
+    number_of_rows: 500000
+bedrock_test_1000000:
+  <<: *defaults
+  rows:
+    number_of_rows: 1000000
+bedrock_test_5000000:
+  <<: *defaults
+  rows:
+    number_of_rows: 5000000
+bedrock_test_10000000:
+  <<: *defaults
+  rows:
+    number_of_rows: 10000000
