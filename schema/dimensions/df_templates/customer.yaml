@@ -14,7 +14,9 @@ default: &defaults
       - "Loyalty:s"
 try:
   <<: *defaults
-  "NumberOfElements": 1000
+  df_template:
+    elements:
+      NumberOfElements: 1000
 bedrock_test_50000:
   <<: *defaults
   "NumberOfElements": 1000
