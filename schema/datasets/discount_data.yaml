@@ -1,4 +1,4 @@
-dev:
+default: &defaults
   targetCube: "testbenchDiscount"
   rows:
     mdx: "{[testbenchVersion].[testbenchVersion].[Actual]}* 
@@ -16,3 +16,19 @@ dev:
         max_val: 0.25
         num_type: "float"
         distribution: "uniform"
+bedrock_test_10000:
+  <<: *defaults
+bedrock_test_50000:
+  <<: *defaults
+bedrock_test_100000:
+  <<: *defaults
+bedrock_test_250000:
+  <<: *defaults
+bedrock_test_500000:
+  <<: *defaults
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults

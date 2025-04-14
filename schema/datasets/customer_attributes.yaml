@@ -1,4 +1,4 @@
-dev:
+default: &defaults
   targetCube: "}ElementAttributes_testbenchCustomer"
   rows:
       mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchCustomer].[testbenchCustomer])}, 0)}"
@@ -15,3 +15,19 @@ dev:
       callable: df_generator_for_dataset._random_from_variable_list
       params:
         variable_path: "variables.loyalty"
+bedrock_test_10000:
+  <<: *defaults
+bedrock_test_50000:
+  <<: *defaults
+bedrock_test_100000:
+  <<: *defaults
+bedrock_test_250000:
+  <<: *defaults
+bedrock_test_500000:
+  <<: *defaults
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults
