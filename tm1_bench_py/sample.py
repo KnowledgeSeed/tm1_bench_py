@@ -10,7 +10,7 @@ def main():
     # Create the absolute path to your schema directory
     schema_dir = os.path.join(parent_dir, "schema")
     # Define which enviroment should be built, if not specifed it will use the .\config.yaml default_yaml_env parameter
-    _ENV = 'bedrock_test_10000'
+    _ENV = 'bedrock_test_10000000'
     loader = tm1_bench.SchemaLoader(schema_dir, _ENV)
     schema = loader.load_schema()
 
@@ -19,6 +19,6 @@ def main():
     _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
 
     tm1_bench.build_model(tm1=tm1, schema=schema, env=_ENV, system_defaults=_DEFAULT_DF_TO_CUBE_KWARGS)
-    #tm1_bench.destroy_model(tm1=tm1, schema=schema)
+    tm1_bench.destroy_model(tm1=tm1, schema=schema)
 if __name__ == '__main__':
     main()

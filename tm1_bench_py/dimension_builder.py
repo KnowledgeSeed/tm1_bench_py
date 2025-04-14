@@ -129,7 +129,7 @@ def hierarchy_to_dataframe(df_template, hierarchy_dict):
             attribute_name =attr_list[i]
             attribute_values = _generate_element_attributes(attribute_name, num_elements)
             df[attribute_name] = attribute_values
-            column_order += attribute_name
+            column_order.append(attribute_name)
 
     # Only include columns that exist in the dataframe
     column_order = [col for col in column_order if col in df.columns]
