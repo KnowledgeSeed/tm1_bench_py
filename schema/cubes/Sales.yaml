@@ -6,14 +6,14 @@ default: &defaults
     "['Price'] = N: DB('testbenchPrice', !testbenchVersion,!testbenchPeriod , !testbenchProduct, 'Price');",
     "['Price'] = C: ['Revenue'] \\ ['Quantity'];",
     "['Revenue'] = N: ['Quantity'] * ['Price'];",
-    "['Cost od Sold Goods'] = N: ['Revenue'] * DB('testbenchPrice', !testbenchVersion,!testbenchPeriod, !testbenchProduct, 'Production Cost Perc.');",
+    "['Cost of Sold Goods'] = N: ['Revenue'] * DB('testbenchPrice', !testbenchVersion,!testbenchPeriod, !testbenchProduct, 'Production Cost Perc.');",
     "['Allocated Cost'] = N: ['Revenue'] * DB('testbenchPrice', !testbenchVersion, !testbenchPeriod, !testbenchProduct, 'Allocated Cost Perc.');",
     "['Transportation and Packaging Cost'] = N: ['Revenue'] * DB('testbenchPrice', !testbenchVersion,!testbenchPeriod, !testbenchProduct, 'Transportation and Packaging Perc.');",
-    "['Margin'] = N: ['Revenue'] - ['Cost od Sold Goods'] - ['Allocated Cost'] - ['Transportation and Packaging Cost'];",
+    "['Margin'] = N: ['Revenue'] - ['Cost of Sold Goods'] - ['Allocated Cost'] - ['Transportation and Packaging Cost'];",
     "['Discount'] = N: ['Revenue'] * Db('testbenchDiscount', !testbenchVersion,!testbenchPeriod, !testbenchCustomer, 'Discount Perc.');",
     "['Discount Perc.'] = ['Discount'] \\ ['Revenue'];",
     "FEEDERS;",
-    "['Quantity']=>['Revenue'],['Discount'],['Cost od Sold Goods'],['Allocated Cost'], ['Margin'];"
+    "['Quantity']=>['Revenue'],['Discount'],['Cost of Sold Goods'],['Allocated Cost'], ['Margin'], ['Transportation and Packaging Cost'];"
   ]
 bedrock_test_10000:
   <<: *defaults

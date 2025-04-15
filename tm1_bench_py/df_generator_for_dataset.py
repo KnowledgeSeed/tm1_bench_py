@@ -171,7 +171,6 @@ def _random_from_variable_list (schema: Dict[str, Any],params: Dict, **_kwargs):
         if keys:
             return random.choice(keys)
 
-
 def _look_up_based_on_column_value(row_data: pd.DataFrame, cur_row_data: Dict, params: Dict, schema: Dict[str, Any], **_kwargs) -> Any:
     referred_column = params['referred_column']
     variable_path = params['variable_path']
@@ -203,7 +202,16 @@ def _look_up_based_on_column_value(row_data: pd.DataFrame, cur_row_data: Dict, p
             # If all n-1 elements and their keys match, find the n element with the given path and key the looked up variable value
             if match_found and cur_values[n-1] == str(referred_column):
                 variable_path = variable_path+"."+str(cur_values[n])+"."+variable_key
-                return pref + str(_get_nested_value(schema, variable_path)) + post
+                searched_obj = _get_nested_value(schema, variable_path)
+                if searched_obj is None:
+                    return None
+                elif isinstance(searched_obj, str):
+                    return pref + str(searched_obj) + post
+                elif isinstance(searched_obj, int):
+                    return searched_obj
+                elif isinstance(searched_obj, list):
+                    chosen_obj = random.choice(searched_obj)
+                    return pref + str(chosen_obj) + post
 
 def _generate_from_subset_mdx(params: Dict, mdx_cache: Dict, tm1: TM1Service, **_kwargs):
     dimension = params['dimension_name']

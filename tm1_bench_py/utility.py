@@ -4,7 +4,8 @@ import time
 import pandas as pd
 from tm1_bench_py import exec_metrics_logger, basic_logger
 import re
-from typing import List, Dict
+import locale
+from typing import List, Dict, Optional, Any
 from TM1py import TM1Service
 import configparser
 from pathlib import Path
@@ -21,12 +22,9 @@ def tm1_connection():
     tm1 = TM1Service(**config['testbench'])
     return tm1
 
-
 # ------------------------------------------------------------------------------------------------------------
 # Utility: Logging helper functions
 # ------------------------------------------------------------------------------------------------------------
-
-
 def execution_metrics_logger(func, *args, **kwargs):
     """Measures and logs the runtime of any function."""
     start_time = time.perf_counter()
@@ -46,7 +44,6 @@ def execution_metrics_logger(func, *args, **kwargs):
 
     return result
 
-
 def log_exec_metrics(func):
     """Decorator to measure function execution time."""
     @functools.wraps(func)
@@ -62,6 +59,10 @@ def set_logging_level(logging_level: str):
 # ------------------------------------------------------------------------------------------------------------
 # Utility: df to tm1 loading functions
 # ------------------------------------------------------------------------------------------------------------
+def get_local_decimal_separator() -> str:
+    locale.getlocale()
+    return locale.localeconv()['decimal_point']
+
 def __get_kwargs_dict_from_set_mdx_list(mdx_expressions: List[str]) -> Dict[str, str]:
     """
     Generate a dictionary of kwargs from a list of MDX expressions.
@@ -132,6 +133,89 @@ def __parse_unique_element_names_from_mdx(mdx_string: str) -> List[str]:
     matches = re.findall(pattern, mdx_string)
     unique_matches = list(set(matches))
     return unique_matches
+
+def dataframe_find_and_replace(
+        dataframe: pd.DataFrame,
+        params: Dict[str, Dict[Any, Any]]
+) -> None:
+    """
+    Remaps elements in a DataFrame based on a provided mapping.
+
+    Args:
+        dataframe (DataFrame): The DataFrame to remap.
+        mapping (Dict[str, Dict[Any, Any]]): A dictionary where keys are column names (dimensions),
+                                             and values are dictionaries mapping old elements to new elements.
+
+    Returns:
+        DataFrame: The updated DataFrame with elements remapped.
+    """
+    mapping = params['mapping']
+    dataframe.replace({col: mapping[col] for col in mapping.keys() if col in dataframe.columns}, inplace=True)
+
+def _tm1_mdx_to_dataframe_default(
+        tm1_service: TM1Service,
+        data_mdx: Optional[str] = None,
+        skip_zeros: bool = False,
+        skip_consolidated_cells: bool = False,
+        skip_rule_derived_cells: bool = False
+) -> pd.DataFrame:
+    """
+    Executes an MDX query using the default TM1 service function and returns a DataFrame.
+    If an MDX is given, it will execute it synchronously,
+    if an MDX list is given, it will execute them asynchronously.
+
+    Args:
+        tm1_service (TM1Service): An active TM1Service object for connecting to the TM1 server.
+        data_mdx (str): The MDX query string to execute.
+        data_mdx_list (list[str]): A list of mdx queries to execute in an asynchronous way.
+        skip_zeros (bool, optional): If True, cells with zero values will be excluded. Defaults to False.
+        skip_consolidated_cells (bool, optional): If True, consolidated cells will be excluded. Defaults to False.
+        skip_rule_derived_cells (bool, optional): If True, rule-derived cells will be excluded. Defaults to False.
+
+    Returns:
+        DataFrame: A DataFrame containing the result of the MDX query.
+    """
+    return tm1_service.cells.execute_mdx_dataframe(
+        mdx=data_mdx,
+        skip_zeros=skip_zeros,
+        skip_consolidated_cells=skip_consolidated_cells,
+        skip_rule_derived_cells=skip_rule_derived_cells,
+        use_iterative_json=True,
+        use_blob=True,
+        decimal=get_local_decimal_separator()
+    )
+
+def _dataframe_reorder_dimensions(
+        dataframe: pd.DataFrame,
+        cube_dimensions: List[str]
+) -> None:
+    """
+    Rearranges the columns of a DataFrame based on the specified cube dimensions.
+
+    The column Value is added to the cube dimension list, since the tm1 loader function expects it to exist at
+    the last column index of the dataframe.
+
+    Parameters:
+    -----------
+    dataframe : DataFrame
+        The input Pandas DataFrame to be rearranged.
+    cube_dimensions : List[str]
+        A list of column names defining the order of dimensions. The "Value"
+        column will be appended if it is not already included.
+
+    Returns:
+    --------
+    None, mutates the dataframe in place
+
+    Raises:
+    -------
+    KeyError:
+        If any column in `cube_dimensions` does not exist in the DataFrame.
+    """
+    temp_reordered = dataframe[cube_dimensions+["Value"]]
+    dataframe.drop(columns=dataframe.columns, inplace=True)
+    for col in temp_reordered.columns:
+        dataframe[col] = temp_reordered[col]
 
 def _clear_cube_default(
         tm1_service: TM1Service,

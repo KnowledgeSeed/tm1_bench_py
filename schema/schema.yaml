@@ -44,12 +44,14 @@ import:
     custom:
       - period
   datasets:
-    - account_attributes
-    - customer_attributes
-    - discount_data
-    - keyaccountmanager_attributes
-    - organizationunit_attributes
-    - price_data
-    - product_attributes
-    - sales_data
-    - version_attributes
+    - 01_version_attributes
+    - 02_account_attributes
+    - 03_keyaccountmanager_attributes
+    - 04_organizationunit_attributes
+    - 05_product_attributes
+    - 06_customer_attributes
+    - 07_sales_data
+    - 08_discount_data
+    - 09_price_data
+    - 10_orgunit_kam_data
+    - 11_product_sales_to_account_rev

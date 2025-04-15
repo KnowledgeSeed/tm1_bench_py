@@ -224,8 +224,26 @@ def generate_data(tm1: TM1Service, schema, system_defaults):
         slice_size_of_dataframe = system_defaults['slice_size_of_dataframe']
         use_ti=system_defaults['use_ti']
         use_blob=system_defaults['use_blob']
-        print(dataset_template)
-        dataframe = df_generator_for_dataset.generate_dataframe(dataset_template, tm1, schema)
+        if schema['datasets'][datasets].get('df_from_mdx') is None:
+            dataframe = df_generator_for_dataset.generate_dataframe(dataset_template, tm1, schema)
+        else:
+            dataframe = utility._tm1_mdx_to_dataframe_default(tm1_service=tm1, data_mdx=schema['datasets'][datasets]['df_from_mdx'])
+            if schema['datasets'][datasets].get('data') is not None:
+                callable_str = schema['datasets'][datasets]['data'].get('callable')
+                callable_param = schema['datasets'][datasets]['data'].get('params')
+                try:
+                    module_name, func_name = callable_str.rsplit('.', 1)
+                    module = importlib.import_module(module_name)
+                    generator_func = getattr(module, func_name)
+                    generator_kwargs = {
+                        'params': callable_param,
+                    }
+                    generator_func(dataframe,**generator_kwargs)
+                except (ImportError, AttributeError, ValueError) as e:
+                    basic_logger.error(f"Error resolving function '{callable_str}' for dataset '{datasets}': {e}",
+                                       exc_info=True)
+                    continue  # Skip to the next data column
+
         print(dataframe)
         utility._dataframe_to_cube_default(
             tm1_service=tm1,

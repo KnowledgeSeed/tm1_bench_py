@@ -4,7 +4,7 @@ default: &defaults
     { "name": "Quantity", "element_type": "Numeric" },
     { "name": "Revenue", "element_type": "Numeric" },
     { "name": "Discount", "element_type": "Numeric" },
-    { "name": "Cost od Sold Goods", "element_type": "Numeric" },
+    { "name": "Cost of Sold Goods", "element_type": "Numeric" },
     { "name": "Allocated Cost", "element_type": "Numeric" },
     { "name": "Transportation and Packaging Cost", "element_type": "Numeric" },
     { "name": "Margin", "element_type": "Numeric" },

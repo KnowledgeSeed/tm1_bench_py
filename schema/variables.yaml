@@ -2,25 +2,72 @@ gender:
     M:
         name: "Male"
         short: "M"
-        fist_names: ["George", "Lukas", "Mark", "Jacob", "Peter", "John", "Mohamed", "Paul", "Martin", "Abel"]
+        first_names:
+          - "George"
+          - "Lukas"
+          - "Mark"
+          - "Jacob"
+          - "Peter"
+          - "John"
+          - "Mohamed"
+          - "Paul"
+          - "Martin"
+          - "Abel"
     F:
         name: "Female"
         short: "F"
-        fist_names: ["Ruth", "Eva", "Mary", "Janet", "Bridget", "Anna", "Carolin", "Lea", "Sarah", "Lea"]
-last_names: ["Skywalker", "Atreides", "Kenobi", "Solo", "Morgana", "Harkonen", "Windu", "Smith", "Paddisha", "Idaho", "Hawat", "Halleck"]
-seniority: ["0-1", "1-3", "3+"]
-account_type: ["PnL","BS"]
+        first_names:
+          - "Ruth"
+          - "Eva"
+          - "Mary"
+          - "Janet"
+          - "Bridget"
+          - "Anna"
+          - "Carolin"
+          - "Lea"
+          - "Sarah"
+          - "Lea"
+last_names:
+  - "Skywalker"
+  - "Atreides"
+  - "Kenobi"
+  - "Solo"
+  - "Morgana"
+  - "Harkonen"
+  - "Windu"
+  - "Smith"
+  - "Paddisha"
+  - "Idaho"
+  - "Hawat"
+  - "Halleck"
+seniority:
+  - "0-1"
+  - "1-3"
+  - "3+"
+account_type:
+  - "PnL"
+  - "BS"
 pnl_account_type:
     Revenue:
         sign: 1
-    CoS:
+    Discount:
         sign: -1
-    OtherCost:
+    Cost of Sold Goods:
         sign: -1
-    PersonalCost:
+    Allocated Cost:
         sign: -1
-loyalty: ["","Bronze","Silver","Gold"]
-product_size: ["S","M","L","XL"]
+    Transportation and Packaging Cost:
+        sign: -1
+loyalty:
+  - ""
+  - "Bronze"
+  - "Silver"
+  - "Gold"
+product_size:
+  - "S"
+  - "M"
+  - "L"
+  - "XL"
 countries:
     HU:
       shortname: "HU"
