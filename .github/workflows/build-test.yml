@@ -43,6 +43,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt build
         python -m build
+
+    - name: Set up Docker with insecure registry
+      run: |
+        echo '{"insecure-registries": ["kseed-docker1.knowledgeseed.local:3000"]}' | sudo tee /etc/docker/daemon.json
+        sudo systemctl restart docker
     
     - name: Spin up TM1
       run: |
