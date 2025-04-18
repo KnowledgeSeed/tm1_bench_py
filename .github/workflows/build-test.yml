@@ -1,0 +1,44 @@
+name: Build & Test
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Set up WireGuard
+      uses: egor-tensin/setup-wireguard@v1
+      with:
+          endpoint: 80.77.112.226:55000
+          endpoint_public_key: ${{ secrets.PFSENSE_PUBLIC_KEY }}
+          ips: 192.168.124.11/24
+          allowed_ips: 192.168.124.0/24, 192.168.123.0/24
+          private_key: ${{ secrets.ENDPOINT_GITHUB_PRIVATE_KEY }}
+
+    - name: Update resolv.conf
+      run: |
+          echo "nameserver 192.168.123.12" | sudo tee /etc/resolv.conf > /dev/null
+          echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf > /dev/null
+          echo "search knowledgeseed.local" | sudo tee -a /etc/resolv.conf > /dev/null
+          
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt build
+        python -m build
+    
+    - name: Stop docker containers
+      if: always()
+      run: |
+        cd tests_integration
+        docker compose down
