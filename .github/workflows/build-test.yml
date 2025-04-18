@@ -54,6 +54,7 @@ jobs:
         PYPACKAGE=$(ls dist | grep .whl)
         cd tests_integration
         docker compose up -d 
+        sleep 10
 
     - name: Run sample.py
       run: |
