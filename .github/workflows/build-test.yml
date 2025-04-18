@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Pwd
+      run: |
+        pwd
     
     - name: Set up WireGuard
       uses: egor-tensin/setup-wireguard@v1
@@ -34,6 +37,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        pwd
         python -m pip install --upgrade pip
         pip install -r requirements.txt build
         python -m build
