@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import calendar
 import pandas as pd
-from tm1_bench_py import exec_metrics_logger, basic_logger
+from tm1_bench_py import basic_logger
 
 # ------------------------------------------------------------------------------------------------------------
 # Utility: CUSTOM PERIOD DIMENSION GENERATOR FOR GENERAL PURPOSES

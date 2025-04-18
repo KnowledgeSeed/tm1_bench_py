@@ -1,10 +1,10 @@
 import pandas as pd
 import random
 import importlib
-from TM1py import TM1Service, SubsetService
-from TM1py.Objects import Dimension, Element, ElementAttribute, Hierarchy, Cube, Subset
+from TM1py import TM1Service
+from TM1py.Objects import Subset
 from typing import Dict, Any, List, Union, Optional
-from tm1_bench_py import  exec_metrics_logger, basic_logger,tm1_bench, utility
+from tm1_bench_py import basic_logger
 import re
 import itertools
 
@@ -383,7 +383,7 @@ def generate_dataframe(dataset_template: Dict[Any, Any], tm1:TM1Service, schema)
         if method == 'function' and isinstance(callable_str, str):
             try:
                 module_name, func_name = callable_str.rsplit('.', 1)
-                module = importlib.import_module(module_name)
+                module = importlib.import_module('.' + module_name, 'tm1_bench_py')
                 generator_func = getattr(module, func_name)
                 basic_logger.debug(f"Successfully resolved generator function: {func_name} from {module_name}")
             except (ImportError, AttributeError, ValueError) as e:
