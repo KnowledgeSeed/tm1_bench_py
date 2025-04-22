@@ -14,12 +14,12 @@ from pathlib import Path
 # Utility: Tm1 service creator
 # ------------------------------------------------------------------------------------------------------------
 
-def tm1_connection():
+def tm1_connection(file_path='config.ini', object_name='testbench'):
     """Creates a TM1 connection before tests and closes it after all tests."""
     config = configparser.ConfigParser()
-    config.read(Path(__file__).parent.joinpath('config.ini'))
+    config.read(file_path)
 
-    tm1 = TM1Service(**config['testbench'])
+    tm1 = TM1Service(**config[object_name])
     return tm1
 
 # ------------------------------------------------------------------------------------------------------------

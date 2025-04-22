@@ -1,3 +1,4 @@
+from pathlib import Path
 from tm1_bench_py import utility, tm1_bench
 import os
 
@@ -14,7 +15,9 @@ def main():
     loader = tm1_bench.SchemaLoader(schema_dir, _ENV)
     schema = loader.load_schema()
 
-    tm1 = utility.tm1_connection()
+    config_file = os.path.join(script_dir, 'config.ini')
+
+    tm1 = utility.tm1_connection(config_file, 'testbench3')
 
     _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
 
