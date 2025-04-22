@@ -16,7 +16,7 @@ jobs:
       with:
           endpoint: 80.77.112.226:55000
           endpoint_public_key: ${{ secrets.PFSENSE_PUBLIC_KEY }}
-          ips: 192.168.124.11/24
+          ips: 192.168.124.90/24
           allowed_ips: 192.168.124.0/24, 192.168.123.0/24
           private_key: ${{ secrets.ENDPOINT_GITHUB_PRIVATE_KEY }}
 
