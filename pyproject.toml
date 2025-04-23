@@ -1,0 +1,11 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+[project]
+name = "tm1_bench_py"
+dynamic = ["version"]
+
+[tool.setuptools.packages]
+find = {namespaces = false} 

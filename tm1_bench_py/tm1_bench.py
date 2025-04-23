@@ -1,10 +1,10 @@
 from TM1py import TM1Service
-from TM1py.Objects import Dimension, Cube
+from TM1py.Objects import Cube
 import os
 import yaml
 import importlib
 from typing import Dict, List, Any
-from tm1_bench_py import basic_logger, df_generator_for_dataset, utility,dimension_builder
+from tm1_bench_py import basic_logger, df_generator_for_dataset, utility, dimension_builder
 
 class SchemaLoader:
     def __init__(self, schema_dir: str, env: str):
@@ -183,7 +183,7 @@ def create_dimensions(tm1: TM1Service, schema):
                         try:
                             # Split the string into module and function name
                             module_name, func_name = func.rsplit('.', 1)
-                            module = importlib.import_module(module_name)
+                            module = importlib.import_module('.' + module_name, 'tm1_bench_py')
                             func = getattr(module, func_name)
                             basic_logger.info(f"Successfully resolved function: {func}")
                             result_df = func(**kwargs)
@@ -233,7 +233,7 @@ def generate_data(tm1: TM1Service, schema, system_defaults):
                 callable_param = schema['datasets'][datasets]['data'].get('params')
                 try:
                     module_name, func_name = callable_str.rsplit('.', 1)
-                    module = importlib.import_module(module_name)
+                    module = importlib.import_module('.' + module_name, 'tm1_bench_py')
                     generator_func = getattr(module, func_name)
                     generator_kwargs = {
                         'params': callable_param,
