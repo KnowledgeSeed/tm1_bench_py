@@ -1,3 +1,5 @@
+![CI Build](https://github.com/knowledgeseed/tm1_bench_py/1/actions/workflows/build-test.yml/badge.svg)
+
 # TM1 Benchmark Model Generator
 This opensource repository for the TM1 community. The solution was created to provide a Pyhonic TM1 benchmark model generator for automated testing, and performance testing internal tools.
 
