@@ -22,7 +22,7 @@ jobs:
 
     - name: Update resolv.conf
       run: |
-          echo "nameserver 192.168.123.12" | sudo tee /etc/resolv.conf > /dev/null
+          echo "nameserver 192.168.123.2" | sudo tee /etc/resolv.conf > /dev/null
           echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf > /dev/null
           echo "search knowledgeseed.local" | sudo tee -a /etc/resolv.conf > /dev/null
     
