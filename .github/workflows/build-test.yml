@@ -7,9 +7,11 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
-    
     - name: Set up WireGuard
       uses: egor-tensin/setup-wireguard@v1
       with:
