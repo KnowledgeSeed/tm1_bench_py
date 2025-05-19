@@ -1,0 +1,13 @@
+default: &defaults
+  dimension_name: "Lineitem HeadCount"
+  elements: [
+    { "name": "Base FTE", "element_type": "Numeric" },
+    { "name": "FTE", "element_type": "Numeric" },
+    { "name": "Leave Type", "element_type": "String" },
+    { "name": "Current Position", "element_type": "String" },
+    { "name": "Promotion", "element_type": "String" }]
+  edges:
+  attributes: [
+    {"name": "Format", "attribute_type": "String"}]
+ksAcademy:
+  <<: *defaults

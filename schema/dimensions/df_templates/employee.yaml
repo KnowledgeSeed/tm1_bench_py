@@ -1,0 +1,28 @@
+# Define reusable parts
+default_elements: &default_elements
+  NumberOfElements: 100
+  ElementPrefix: "Employee"
+  ElementLength: 2
+  Method: "enumerate"
+
+default_levels: &default_levels
+  - name: "level000"
+    constant_content: "All Employee"
+
+default_attributes: &default_attributes
+  - "Seniority:s"
+  - "Gender:s"
+  - "CountryOfOrigin:s"
+  - "FirstName:s"
+  - "LastName:s"
+
+# Define the main default using the parts
+default: &defaults
+  dimension_name: "Employee"
+  df_template:
+    elements: *default_elements
+    levels: *default_levels
+    attributes: *default_attributes
+
+ksAcademy:
+  <<: *defaults

@@ -1,0 +1,4 @@
+ksAcademy:
+  name: "Headcount"
+  dimensions: [ "Version","Period", "Organization Unit","Employee","Position", "lineitem Headcount","Measures Headcount"]
+  rules: []

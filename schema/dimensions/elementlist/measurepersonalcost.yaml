@@ -1,0 +1,17 @@
+ksAcademy:
+  dimension_name: "Measures Personal Cost"
+  elements: [
+    { "name": "Input", "element_type": "Numeric" },
+    { "name": "Delta", "element_type": "Numeric" },
+    { "name": "Override", "element_type": "Numeric" },
+    { "name": "Correction", "element_type": "Numeric" },
+    { "name": "Value", "element_type": "Numeric" },
+    { "name": "Corrected Value", "element_type": "Numeric" }]
+  edges:
+    - [ "Value", "Input", 1 ]
+    - [ "Value", "Delta", 1 ]
+    - [ "Corrected Value", "Value", 1 ]
+    - [ "Corrected Value", "Correction", 1 ]
+  attributes: [
+    { "name": "Format", "attribute_type": "String" }
+  ]

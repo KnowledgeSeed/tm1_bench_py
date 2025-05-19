@@ -29,3 +29,20 @@ bedrock_test_5000000:
   <<: *defaults
 bedrock_test_10000000:
   <<: *defaults
+ksAcademy:
+  dimension_name: "Measures Sales"
+  elements: [
+    { "name": "Input", "element_type": "Numeric" },
+    { "name": "Delta", "element_type": "Numeric" },
+    { "name": "Override", "element_type": "Numeric" },
+    { "name": "Correction", "element_type": "Numeric" },
+    { "name": "Value", "element_type": "Numeric" },
+    { "name": "Corrected Value", "element_type": "Numeric" }]
+  edges:
+    - [ "Value", "Input", 1 ]
+    - [ "Value", "Delta", 1 ]
+    - [ "Corrected Value", "Value", 1 ]
+    - [ "Corrected Value", "Correction", 1 ]
+  attributes: [
+    { "name": "Format", "attribute_type": "String" }
+  ]

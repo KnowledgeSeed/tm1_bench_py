@@ -15,6 +15,10 @@ default: &defaults
     "FEEDERS;",
     "['Quantity']=>['Revenue'],['Discount'],['Cost of Sold Goods'],['Allocated Cost'], ['Margin'], ['Transportation and Packaging Cost'];"
   ]
+ksAcademy:
+  name: "Sales"
+  dimensions: [ "Version","Period", "Currency","Organization Unit","Employee","Product", "lineitem Sales","Measures Sales"]
+  rules: []
 bedrock_test_10000:
   <<: *defaults
 bedrock_test_50000:

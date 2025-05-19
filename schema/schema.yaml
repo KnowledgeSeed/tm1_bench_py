@@ -21,24 +21,34 @@ import:
     variables
   cubes:
     - Discount
+    - Headcount
     - MappingKeyAccountManagerToOrganizationUnit
     - MappingProductToAccount
+    - PersonalCost
     - PnL
     - Price
     - Sales
   dimensions:
     elementlist:
+      - currency
+      - lineitemheadcount
+      - lineitempersonalcost
+      - lineitemsales
       - measurediscount
+      - measureheadcount
       - measuremappingkeyaccountmanagertoorganizationunit
       - measuremappingproducttoaccount
+      - measurepersonalcost
       - measurepnl
       - measureprice
       - measuresales
       - organizationunit
+      - position
       - version
     df_templates:
       - account
       - customer
+      - employee
       - keyaccountmanager
       - product
     custom:
