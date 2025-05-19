@@ -68,6 +68,16 @@ product_size:
   - "M"
   - "L"
   - "XL"
+product_price_range:
+  - "0-10"
+  - "11-50"
+  - "50-100"
+  - "100-200"
+product_weight:
+  - "0-0.5"
+  - "0.51-1"
+  - "1-1.5"
+  - "1.51-3"
 countries:
     HU:
       shortname: "HU"

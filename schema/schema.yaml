@@ -65,3 +65,4 @@ import:
     - 09_price_data
     - 10_orgunit_kam_data
     - 11_product_sales_to_account_rev
+    - 12_employee_attributes

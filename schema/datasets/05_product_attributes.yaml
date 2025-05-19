@@ -18,6 +18,30 @@ default: &defaults
         # Use a block scalar - no escaping needed for quotes inside
         subsetMDX: >-
           {TM1FILTERBYPATTERN({TM1FILTERBYPATTERN({TM1FILTERBYLEVEL({TM1SUBSETALL([testbenchAccount].[testbenchAccount])}, 0)}, "PnL","StatementType")}, "Revenue","Type")}
+ksacademy_def: &ksAcadmey
+  targetCube: "}ElementAttributes_Product"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([Product].[Product])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_Product"
+  data:
+    Size:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.product_size"
+    Weight:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.product_weight"
+    PriceRange:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.product_price_range"
+ksAcademy:
+  <<: *ksAcadmey
 bedrock_test_10000:
   <<: *defaults
 bedrock_test_50000:
