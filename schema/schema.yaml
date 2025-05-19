@@ -21,6 +21,7 @@ import:
     variables
   cubes:
     - Discount
+    - FYRates
     - Headcount
     - MappingKeyAccountManagerToOrganizationUnit
     - MappingProductToAccount
@@ -31,6 +32,7 @@ import:
   dimensions:
     elementlist:
       - currency
+      - global_currency
       - lineitemheadcount
       - lineitempersonalcost
       - lineitemsales
