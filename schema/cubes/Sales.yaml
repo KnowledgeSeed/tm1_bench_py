@@ -15,6 +15,24 @@ default: &defaults
     "FEEDERS;",
     "['Quantity']=>['Revenue'],['Discount'],['Cost of Sold Goods'],['Allocated Cost'], ['Margin'], ['Transportation and Packaging Cost'];"
   ]
+ksAcademy:
+  name: "Sales"
+  dimensions: [ "Version","Period", "Currency","Organization Unit","Employee","Product", "lineitem Sales","Measures Sales"]
+  rules: [
+  "SkipCheck;",
+  "['Lineitem Sales':'Price','Measures Sales':'Input'] =N:",
+  "numbr(Subst(DB('}ElementAttributes_Product', !Product, 'PriceRange'),1,Scan('-',DB('}ElementAttributes_Product', !Product, 'PriceRange'))-1)) +",
+  "ROUND(",
+  "  RAND()*",
+  "  (numbr(Subst(DB('}ElementAttributes_Product', !Product, 'PriceRange'),Scan('-',DB('}ElementAttributes_Product', !Product, 'PriceRange'))+1,3)) ",
+  "  - numbr(Subst(DB('}ElementAttributes_Product', !Product, 'PriceRange'),1,Scan('-',DB('}ElementAttributes_Product', !Product, 'PriceRange'))-1))));",
+  "['Lineitem Sales':'Revenue'] =N:",
+  "['Lineitem Sales':'Quantity'] * ['Lineitem Sales':'Price'];",
+  "Feeders;",
+  "['Lineitem Sales':'Quantity','Measures Sales':'Input']=>",
+  "['Lineitem Sales':'Price','Measures Sales':'Input'];",
+  "['Lineitem Sales':'Quantity']=>",
+  "['Lineitem Sales':'Revenue'];"]
 bedrock_test_10000:
   <<: *defaults
 bedrock_test_50000:

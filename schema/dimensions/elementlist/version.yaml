@@ -23,3 +23,6 @@ bedrock_test_5000000:
   <<: *defaults
 bedrock_test_10000000:
   <<: *defaults
+ksAcademy:
+  <<: *defaults
+  dimension_name: "Version"

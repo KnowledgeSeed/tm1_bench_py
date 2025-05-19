@@ -1,0 +1,4 @@
+ksAcademy:
+  name: "Personal Cost"
+  dimensions: [ "Version","Period", "Currency", "Organization Unit","Employee","Position", "lineitem Personal Cost","Measures Personal Cost"]
+  rules: []

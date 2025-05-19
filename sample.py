@@ -11,7 +11,7 @@ def main():
     # Create the absolute path to your schema directory
     schema_dir = os.path.join(script_dir, "schema")
     # Define which enviroment should be built, if not specifed it will use the .\config.yaml default_yaml_env parameter
-    _ENV = 'bedrock_test_10000'
+    _ENV = 'ksAcademy'
     loader = tm1_bench.SchemaLoader(schema_dir, _ENV)
     schema = loader.load_schema()
 

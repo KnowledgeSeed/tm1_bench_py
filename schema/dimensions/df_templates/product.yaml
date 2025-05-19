@@ -19,9 +19,34 @@ default_levels: &default_levels
       Length: 2
       Method: "enumerate"
 
+ks_levels: &ks_levels
+  - name: "level000"
+    constant_content: "All Product"
+  - name: "level001"
+    content_template:
+      Prefix: "ProductSegment"
+      Length: 1
+      Method: "enumerate"
+  - name: "level002"
+    content_template:
+      Prefix: "ProductCategory"
+      Length: 1
+      Method: "enumerate"
+  - name: "level003"
+    content_template:
+      Prefix: "ProductGroup"
+      Length: 1
+      Method: "enumerate"
+
 default_attributes: &default_attributes
   - "AccountType:s"
   - "Size:s"
+
+ks_attributes: &ks_attributes
+  - "AccountType:s"
+  - "Size:s"
+  - "Weight:s"
+  - "PriceRange:s"
 
 # Define the main default using the parts
 default: &defaults
@@ -30,6 +55,17 @@ default: &defaults
     elements: *default_elements
     levels: *default_levels
     attributes: *default_attributes
+
+#Define KS ACADEMY cases
+ksAcademy:
+  dimension_name: "Product"
+  df_template:
+    elements:
+      <<: *default_elements
+      NumberOfElements: 300
+    levels: *ks_levels
+    attributes: *ks_attributes
+
 #Defind Tm1 bedrock test cases
 bedrock_test_10000:
   <<: *defaults

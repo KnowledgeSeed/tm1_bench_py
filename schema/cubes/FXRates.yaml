@@ -1,0 +1,4 @@
+ksAcademy:
+  name: "FX Rates"
+  dimensions: [ "Version","Period", "Currency","Organization Unit","Employee","Product", "lineitem Sales","Measures FX Rates"]
+  rules: [

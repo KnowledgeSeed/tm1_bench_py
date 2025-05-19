@@ -22,6 +22,39 @@ default: &defaults
         distribution: "normal"
         mean: 65
         std_dev: 20
+
+ksacademy_rows: &ksAcademy_rows
+  mdx: "{[Version].[Version].[Actual]}* 
+        {[Period].[Period].[202401],[Period].[Period].[202402],[Period].[Period].[202403],[Period].[Period].[202404],[Period].[Period].[202405],[Period].[Period].[202406],[Period].[Period].[202407],[Period].[Period].[202408],[Period].[Period].[202409],[Period].[Period].[202410],[Period].[Period].[202411],[Period].[Period].[202412],[Period].[Period].[202501],[Period].[Period].[202502],[Period].[Period].[202503]}*
+        {[Currency].[Currency].Members}*
+        {[Organization Unit].[Organization Unit].Members}*
+        {[Employee].[Employee].Members}*
+        {[Product].[Product].Members}*
+        {[Lineitem Sales].[Lineitem Sales].[Quantity]}*
+        {[Measures Sales].[Measures Sales].[Input]}"
+  number_of_rows: 250000
+
+ksacademy_default: &ksAcademy_defaults
+  targetCube: "Sales"
+  rows:
+    <<: *ksAcademy_rows
+  data_colum_dimension: "Measures Sales"
+  data:
+    Input:
+      method: "function"
+      callable: df_generator_for_dataset._random_number_based_on_statistic
+      params:
+        min_val: 0
+        max_val: 100
+        num_type: "int"
+        distribution: "normal"
+        mean: 65
+        std_dev: 20
+ksAcademy:
+  <<: *ksAcademy_defaults
+  rows:
+    <<: *ksAcademy_rows
+    number_of_rows: 1000000
 bedrock_test_10000:
   <<: *defaults
   rows:

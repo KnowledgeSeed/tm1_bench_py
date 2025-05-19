@@ -1,0 +1,36 @@
+default: &defaults
+  targetCube: "}ElementAttributes_Employee"
+  rows:
+    mdx: "{TM1FILTERBYLEVEL({TM1SUBSETALL([Employee].[Employee])}, 0)}"
+    number_of_rows: -1
+  data_colum_dimension: "}ElementAttributes_Employee"
+  data:
+    Seniority:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.seniority"
+    Gender:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.gender"
+    CountryOfOrigin:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.countries"
+    FirstName:
+      method: "function"
+      callable: df_generator_for_dataset._look_up_based_on_column_value
+      params:
+        referred_column: "Gender"
+        variable_path: "variables.gender"
+        variable_key: "first_names"
+    LastName:
+      method: "function"
+      callable: df_generator_for_dataset._random_from_variable_list
+      params:
+        variable_path: "variables.last_names"
+ksAcademy:
+  <<: *defaults

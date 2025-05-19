@@ -1,0 +1,32 @@
+default: &defaults
+  dimension_name: "Lineitem Personal Cost"
+  elements: [
+    { "name": "Base Salary", "element_type": "Numeric" },
+    { "name": "Variable Salary", "element_type": "Numeric" },
+    { "name": "Social Security", "element_type": "Numeric" },
+    { "name": "Travel", "element_type": "Numeric" },
+    { "name": "Training", "element_type": "Numeric" },
+    { "name": "Pension", "element_type": "Numeric" },
+    { "name": "FTE", "element_type": "Numeric" },
+    { "name": "Total Personal Cost", "element_type": "Numeric" }]
+  edges:
+  attributes: [
+    {"name": "Format", "attribute_type": "String"}]
+ksAcademy:
+  <<: *defaults
+bedrock_test_10000:
+  <<: *defaults
+bedrock_test_50000:
+  <<: *defaults
+bedrock_test_100000:
+  <<: *defaults
+bedrock_test_250000:
+  <<: *defaults
+bedrock_test_500000:
+  <<: *defaults
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults
