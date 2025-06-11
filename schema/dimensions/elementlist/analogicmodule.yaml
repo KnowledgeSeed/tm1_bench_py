@@ -1,0 +1,21 @@
+default: &defaults
+  dimension_name: "}AnalogicModule"
+  elements: [
+          { "name": "All Modules", "element_type": "Consolidated" },
+          { "name": "Product Planning", "element_type": "Numeric" },
+          { "name": "HR Simulation", "element_type": "Numeric" },
+          { "name": "User and Access", "element_type": "Numeric" }]
+  edges:
+    - ["All Modules", "Product Planning", 1]
+    - ["All Modules", "HR Simulation", 1]
+    - ["All Modules", "User and Access", 1]
+
+  attributes: [
+    {"name": "Caption", "attribute_type": "Alias"},
+    {"name": "UILevel", "attribute_type": "String"},
+    {"name": "Parent", "attribute_type": "String"},
+    {"name": "WidgetID", "attribute_type": "String"}
+  ]
+
+ksAcademy:
+  <<: *defaults
