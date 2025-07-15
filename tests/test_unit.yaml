@@ -100,7 +100,7 @@ test_nested_dictionary_to_dataframe:
     "element_id": ["P0000001","P0000002","P0000003","P0000004","P0000005","P0000006"],
     "element_type":["numeric","numeric","numeric","numeric","numeric","numeric"],
     "level000":["All Product","All Product","All Product","All Product","All Product","All Product"],
-    "level001":["Product Group 01","Product Group 01","Product Group 01","Product Group 02","Product Group 02",""],
+    "level001":["Product Group 01","Product Group 01","Product Group 01","Product Group 02","Product Group 02", ""],
     "level002":["","","Sub categegory 01","","",""],
     "level000_weight": [1,1,1,1,1,1],
     "level001_weight": [1,1,1,1,1,1],
@@ -146,3 +146,150 @@ test_period_creation_with_custom_function:
         ['2025-11-01', 'MONTH', '2025-11', 2025.0, 11.0, 'November', 'Nov', 4.0, 2025.0, 'M202511', 30.0, 'M202510', 'All Periods', 0, 2025, 1, '2025Q4', 1],
         ['2025-12-01', 'MONTH', '2025-12', 2025.0, 12.0, 'December', 'Dec', 4.0, 2025.0, 'M202512', 31.0, 'M202511', 'All Periods', 0, 2025, 1, '2025Q4', 1]
     ]
+
+test_dataframe_find_and_replace:
+  - dataframe:
+      col1: [ "apple", "banana", "cherry", "apple" ]
+      col2: [ 1, 2, 3, 1 ]
+      col3: [ "x", "y", "z", "x" ]
+    params:
+      mapping:
+        col1:
+          apple: "APPLE"
+          banana: "BANANA"
+        col2:
+          1: 100
+          3: 300
+    expected_dataframe:
+      col1: [ "APPLE", "BANANA", "cherry", "APPLE" ]
+      col2: [ 100, 2, 300, 100 ]
+      col3: [ "x", "y", "z", "x" ]
+  - dataframe:
+      col1: [ "apple", "banana", "cherry", "apple" ]
+      col2: [ 1, 2, 3, 1 ]
+      col3: [ "x", "y", "z", "x" ]
+    params:
+      mapping:
+        nonexistent_col: { 'apple': 'APPLE' }
+    expected_dataframe:
+      col1: [ "apple", "banana", "cherry", "apple" ]
+      col2: [ 1, 2, 3, 1 ]
+      col3: [ "x", "y", "z", "x" ]
+  - dataframe:
+      col1: [ "apple", "banana", "cherry", "apple" ]
+      col2: [ 1, 2, 3, 1 ]
+      col3: [ "x", "y", "z", "x" ]
+    params:
+      mapping:
+        col1: {'orange': 'ORANGE'}
+    expected_dataframe:
+      col1: [ "apple", "banana", "cherry", "apple" ]
+      col2: [ 1, 2, 3, 1 ]
+      col3: [ "x", "y", "z", "x" ]
+  - dataframe:
+      col1: [ "apple", "banana", "cherry", "apple" ]
+      col2: [ 1, 2, 3, 1 ]
+      col3: [ "x", "y", "z", "x" ]
+    params:
+      mapping: {}
+    expected_dataframe:
+      col1: [ "apple", "banana", "cherry", "apple" ]
+      col2: [ 1, 2, 3, 1 ]
+      col3: [ "x", "y", "z", "x" ]
+
+test_generate_dataframe_based_on_schema:
+  - file_name: "01_version_attributes.yaml"
+    dataset_size: 'bedrock_test_10000'
+  - file_name: "07_sales_data.yaml"
+    dataset_size: 'bedrock_test_10000'
+
+test_generate_dataframe_based_on_schema_check_columns:
+  - file_name: "01_version_attributes.yaml"
+    dataset_size: 'bedrock_test_10000'
+    expected_columns: ['testbenchVersion', '}ElementAttributes_testbenchVersion', 'Value']
+
+test_generate_hierarchy_dictionary_match_key_value_pairs:
+  - df_template_file: "/dimensions/df_templates/account.yaml"
+    dataset_size: 'bedrock_test_10000'
+    expected_hierarchy: {
+      "type": "consolidated",
+      "level": "level000",
+      "element_name": "All Account",
+      "weight": "1"
+    }
+  - df_template_file: "/dimensions/df_templates/product.yaml"
+    dataset_size: 'bedrock_test_500000'
+    expected_hierarchy: {
+      "type": "consolidated",
+      "level": "level000",
+      "element_name": "All Product",
+      "weight": "1"
+    }
+
+test_hierarchy_to_dataframe_check_if_instance:
+  - df_template_file: "/dimensions/df_templates/account.yaml"
+    dataset_size: 'bedrock_test_10000'
+
+test_create_dimension_from_dataframe_template_check_if_created:
+  - df_template_file: "/dimensions/df_templates/account.yaml"
+    dataset_size: 'bedrock_test_10000'
+  - df_template_file: "/dimensions/df_templates/product.yaml"
+    dataset_size: 'bedrock_test_500000'
+
+test_create_dimension_from_element_list_check_if_created:
+  - elementlist_file: "/dimensions/elementlist/measurediscount.yaml"
+    dataset_size: 'bedrock_test_10000'
+  - elementlist_file: "/dimensions/elementlist/lineitempersonalcost.yaml"
+    dataset_size: 'bedrock_test_100000'
+
+test_create_dimension_check_if_created:
+  - schema:
+      dimensions:
+        df_templates:
+          account:
+            dimension_name: "testbenchAccount"
+            df_template:
+              elements:
+                NumberOfElements: 100
+                ElementPrefix: ""
+                ElementLength: 8
+                Method: "enumerate"
+              levels:
+                - name: "level000"
+                  constant_content: "All Account"
+              attributes:
+                - "StatementType:s"
+                - "Type:s"
+                - "Sign:n"
+    name: "testbenchAccount"
+
+test_delete_dimensions:
+  - dataset_size: 'bedrock_test_10000'
+    dim_names: [
+      "testbenchAccount",
+      "Currency",
+      "Lineitem HeadCount",
+      "Lineitem Personal Cost",
+      "Lineitem Sales",
+      "testbenchMeasureDiscount",
+      "testbenchMeasuremappingkeyaccountmanagertoorganizationunit",
+      "testbenchMeasureMappingProductToAccount",
+      "testbenchMeasurePnL",
+      "testbenchMeasurePrice",
+      "testbenchMeasureSales",
+      "testbenchOrganizationUnit",
+      "testbenchVersion",
+      "testbenchCustomer",
+      "testbenchProduct",
+      "testbenchKeyAccountManager",
+      "testbenchPeriod"
+    ]
+
+test_create_cube_check_if_created:
+  - dataset_size: 'bedrock_test_10000'
+
+test_delete_cubes:
+  - dataset_size: 'bedrock_test_10000'
+
+test_build_model:
+  - envname: 'bedrock_test_10000'
