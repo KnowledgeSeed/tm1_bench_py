@@ -3,10 +3,27 @@ import random
 import importlib
 from TM1py import TM1Service
 from TM1py.Objects import Subset
-from typing import Dict, Any, List, Union, Optional
+from typing import Dict, Any, List, Union, Optional, Tuple
 from tm1_bench_py import basic_logger
 import re
 import itertools
+
+# cache for lookups built from previously generated rows
+LOOKUP_CACHE: Dict[int, Tuple[pd.Series, List[str]]] = {}
+
+
+def _build_lookup_series(row_data: List[Dict[str, Any]]) -> Tuple[pd.Series, List[str]]:
+    """Build a lookup Series from a list of row dictionaries.
+
+    The resulting Series has a MultiIndex composed of all columns except
+    ``Value`` and maps to the ``Value`` column. This structure enables fast
+    retrieval of previously generated values without iterating over the list of
+    rows on each lookup.
+    """
+
+    df = pd.DataFrame(row_data)
+    index_columns = [col for col in df.columns if col != "Value"]
+    return df.set_index(index_columns)["Value"], index_columns
 
 # ------------------------------------------------------------------------------------------------------------
 # Utility: Subset utilities
@@ -171,47 +188,52 @@ def _random_from_variable_list (schema: Dict[str, Any],params: Dict, **_kwargs):
         if keys:
             return random.choice(keys)
 
-def _look_up_based_on_column_value(row_data: pd.DataFrame, cur_row_data: Dict, params: Dict, schema: Dict[str, Any], **_kwargs) -> Any:
-    referred_column = params['referred_column']
-    variable_path = params['variable_path']
-    variable_key = params['variable_key']
-    prefix = params.get('prefix')
-    postfix = params.get('postfix')
-    if prefix:
-        pref = str(prefix)
-    else: pref = ""
-    if postfix:
-        post = str(postfix)
-    else: post = ""
+def _look_up_based_on_column_value(row_data: pd.DataFrame, cur_row_data: Dict, params: Dict,
+                                  schema: Dict[str, Any], **_kwargs) -> Any:
+    """Lookup a value in ``schema`` based on another column's value.
 
-    # Convert reference dictionary keys and values to lists for easier indexing
-    ref_keys = list(cur_row_data.keys())
-    ref_values = list(cur_row_data.values())
-    n = len(ref_keys)
-    # find in the previously generaed content the matching dictionaries based on the given referred column
-    for row  in row_data:
-        cur_key = list(row.keys())
-        cur_values = list(row.values())
-        if len(cur_key) != len(ref_keys):
-            match_found = all(
-                cur_key[i] == ref_keys[i] and
-                cur_values[i] == ref_values[i]
-                for i in range(n-1)
-            )
+    A :class:`pandas.Series` built from ``row_data`` is cached to speed up
+    subsequent lookups. If no corresponding value can be resolved, the
+    ``default`` value specified in ``params`` is returned.
+    """
 
-            # If all n-1 elements and their keys match, find the n element with the given path and key the looked up variable value
-            if match_found and cur_values[n-1] == str(referred_column):
-                variable_path = variable_path+"."+str(cur_values[n])+"."+variable_key
-                searched_obj = _get_nested_value(schema, variable_path)
-                if searched_obj is None:
-                    return None
-                elif isinstance(searched_obj, str):
-                    return pref + str(searched_obj) + post
-                elif isinstance(searched_obj, int):
-                    return searched_obj
-                elif isinstance(searched_obj, list):
-                    chosen_obj = random.choice(searched_obj)
-                    return pref + str(chosen_obj) + post
+    referred_column = params["referred_column"]
+    variable_path = params["variable_path"]
+    variable_key = params["variable_key"]
+    default_value = params.get("default")
+    prefix = str(params.get("prefix", ""))
+    postfix = str(params.get("postfix", ""))
+
+    cache_key = id(row_data)
+    lookup_series, index_columns = LOOKUP_CACHE.get(cache_key, (None, None))
+    if lookup_series is None or len(lookup_series) != len(row_data):
+        lookup_series, index_columns = _build_lookup_series(row_data)
+        LOOKUP_CACHE[cache_key] = (lookup_series, index_columns)
+
+    if lookup_series.empty:
+        result = default_value
+    else:
+        try:
+            lookup_index = tuple(cur_row_data[col] for col in index_columns[:-1]) + (referred_column,)
+        except KeyError:
+            lookup_index = None
+
+        base_value = lookup_series.get(lookup_index) if lookup_index is not None else None
+        if base_value is None:
+            result = default_value
+        else:
+            lookup_path = f"{variable_path}.{base_value}.{variable_key}"
+            searched_obj = _get_nested_value(schema, lookup_path)
+            if searched_obj is None:
+                result = default_value
+            elif isinstance(searched_obj, list):
+                result = random.choice(searched_obj)
+            else:
+                result = searched_obj
+
+    if isinstance(result, str):
+        return prefix + result + postfix
+    return result
 
 def _generate_from_subset_mdx(params: Dict, mdx_cache: Dict, tm1: TM1Service, **_kwargs):
     dimension = params['dimension_name']
