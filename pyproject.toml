@@ -6,6 +6,8 @@ requires = [
 [project]
 name = "tm1_bench_py"
 dynamic = ["version"]
+description = "TM1 benchmark model generator for automated testing, performance testing internal tools and provide an opensource solution for the community for similar purposes."
+keywords=["TM1", "IBM Cognos TM1", "Planning Analytics", "PA", "Cognos"]
 
 [tool.setuptools.packages]
 find = {namespaces = false} 
