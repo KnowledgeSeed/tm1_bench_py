@@ -1,0 +1,34 @@
+default: &defaults
+  dimension_name: "Global Currency"
+  elements: [
+    {"name": "LC", "element_type": "Numeric"},
+    {"name": "USD", "element_type": "Numeric"},
+    {"name": "EUR", "element_type": "Numeric"},
+    {"name": "CHF", "element_type": "Numeric"},
+    {"name": "GBP", "element_type": "Numeric"},
+    {"name": "CAD", "element_type": "Numeric"},
+    {"name": "CZK", "element_type": "Numeric"},
+    {"name": "DKK", "element_type": "Numeric"},
+    {"name": "NOK", "element_type": "Numeric"},
+    {"name": "HUF", "element_type": "Numeric"}]
+  edges:
+  attributes: [
+    {"name": "Format", "attribute_type": "String"}]
+ksAcademy:
+    <<: *defaults
+bedrock_test_10000:
+  <<: *defaults
+bedrock_test_50000:
+  <<: *defaults
+bedrock_test_100000:
+  <<: *defaults
+bedrock_test_250000:
+  <<: *defaults
+bedrock_test_500000:
+  <<: *defaults
+bedrock_test_1000000:
+  <<: *defaults
+bedrock_test_5000000:
+  <<: *defaults
+bedrock_test_10000000:
+  <<: *defaults
