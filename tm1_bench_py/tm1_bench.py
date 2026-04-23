@@ -4,7 +4,7 @@ import os
 import yaml
 import importlib
 from typing import Dict, List, Any
-from tm1_bench_py import basic_logger, df_generator_for_dataset, utility, dimension_builder, tm1_bedrock_executor
+from tm1_bench_py import basic_logger, df_generator_for_dataset, utility, dimension_builder, tm1_bedrock_executor, schema_validator
 
 class SchemaLoader:
     def __init__(self, schema_dir: str, env: str):
@@ -277,21 +277,27 @@ def generate_data(tm1: TM1Service, schema, system_defaults):
 
 @utility.log_exec_metrics
 def build_model(tm1: TM1Service, schema, system_defaults, env):
-    if tm1 is None:
-        tm1 = utility.tm1_connection()
-
-    # Get the directory where your script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Navigate one level up to project_folder/
-    parent_dir = os.path.dirname(script_dir)
-    # Create the absolute path to your schema directory
-    schema_dir = os.path.join(parent_dir, "schema")
+    project_root = os.path.dirname(script_dir)
+    schema_dir = os.path.join(project_root, "schema")
+
     if schema is None:
         loader = SchemaLoader(schema_dir, env)
         schema = loader.load_schema()
 
+    report = schema_validator.validate_schema(schema, project_root)
+    report.log_report()
+    if not report.is_valid:
+        raise ValueError(
+            f"Schema validation failed with {len(report.errors)} error(s). "
+            "Review the [SCHEMA] log entries above and fix before building."
+        )
+
+    if tm1 is None:
+        tm1 = utility.tm1_connection()
+
     if system_defaults is None:
-        _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
+        system_defaults = schema['config']['df_to_cube_default_kwargs']
 
     try:
         create_dimensions(tm1, schema)
