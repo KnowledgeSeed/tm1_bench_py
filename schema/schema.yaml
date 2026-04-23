@@ -55,6 +55,8 @@ import:
       - product
     custom:
       - period
+    csv:
+      - organizationunit_csv_example
   datasets:
     - 01_version_attributes
     - 02_account_attributes

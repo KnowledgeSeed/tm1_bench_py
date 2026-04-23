@@ -1,0 +1,22 @@
+default: &defaults
+  dimension_name: "testbenchOrganizationUnitCSV"
+  csv_template:
+    source: "schema/dimensions/csv_sources/organizationunit_csv_example.csv"
+    input_format: "parent_child"
+    build_strategy: "rebuild"
+    element_column: "code"
+    parent_column: "parent_code"
+    element_type_column: "element_type"
+    attributes:
+      - source: "description"
+        target: "Description:s"
+      - source: "country"
+        target: "Country:s"
+      - source: "currency"
+        target: "Currency:s"
+
+ksAcademy:
+  <<: *defaults
+
+bedrock_test_10000:
+  <<: *defaults

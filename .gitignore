@@ -14,6 +14,7 @@ venv/
 
 # other data and test files
 developer_test_files/
+tests/_runtime_tmp/
 
 *.log
 *.mdmp
@@ -21,3 +22,9 @@ logs
 
 dist
 tm1_bench_py.egg-info
+
+# Project assistant — local only, not shared
+project_memory.md
+blueprint.md
+work_logs/
+dependencies_blueprint/

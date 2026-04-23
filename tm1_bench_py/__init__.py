@@ -26,7 +26,10 @@ if os.path.exists(log_config_path):
     log_dir = os.path.dirname(log_file)
     os.makedirs(log_dir, exist_ok=True)
 
-    logging.config.dictConfig(log_config)
+    try:
+        logging.config.dictConfig(log_config)
+    except Exception:
+        logging.basicConfig(level=logging.INFO)
 else:
     logging.basicConfig(level=logging.ERROR)  # Fallback if JSON config is missing
 

@@ -10,6 +10,7 @@ paths:
   dimensions_elementlist: 'dimensions/elementlist'
   dimensions_df_templates: 'dimensions/df_templates'
   dimensions_custom: 'dimensions/custom'
+  dimensions_csv: 'dimensions/csv'
   cubes: 'cubes'
   datasets: 'datasets'
   variables: ''

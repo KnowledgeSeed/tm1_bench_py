@@ -4,7 +4,7 @@ import os
 import yaml
 import importlib
 from typing import Dict, List, Any
-from tm1_bench_py import basic_logger, df_generator_for_dataset, utility, dimension_builder
+from tm1_bench_py import basic_logger, df_generator_for_dataset, utility, dimension_builder, tm1_bedrock_executor
 
 class SchemaLoader:
     def __init__(self, schema_dir: str, env: str):
@@ -12,7 +12,8 @@ class SchemaLoader:
         self.dimensions = {
             'elementlist': {},
             'df_templates': {},
-            'custom': {}
+            'custom': {},
+            'csv': {}
         }
         self.cubes = {}
         self.datasets = {}
@@ -43,7 +44,14 @@ class SchemaLoader:
         if self.env not in loaded_content:
             full_path = os.path.join(self.schema_dir, self.config.get('paths', {}).get(relative_path, relative_path),
                                      f"{filename}.yaml")
-            basic_logger.error(f"Environment key '{self.env}' not found in {full_path}")
+            if 'default' in loaded_content:
+                basic_logger.warning(
+                    f"Environment key '{self.env}' not found in {full_path} — falling back to 'default'."
+                )
+                return loaded_content['default']
+            basic_logger.error(
+                f"Environment key '{self.env}' not found in {full_path} and no 'default' block exists — skipping."
+            )
             return {}
 
         return loaded_content[self.env]
@@ -113,7 +121,8 @@ class SchemaLoader:
         for dim_type, path_key_suffix in [
             ('elementlist', 'dimensions_elementlist'),
             ('df_templates', 'dimensions_df_templates'),
-            ('custom', 'dimensions_custom')
+            ('custom', 'dimensions_custom'),
+            ('csv', 'dimensions_csv')
         ]:
             path_key = path_key_suffix # Directly use the key from config.yaml paths
             for dim_name in dimension_refs.get(dim_type, []):
@@ -195,6 +204,15 @@ def create_dimensions(tm1: TM1Service, schema):
                         except Exception as e:
                             basic_logger.info(f"Error resolving function: {e}")
                             raise
+                case "csv":
+                    script_dir = os.path.dirname(os.path.abspath(__file__))
+                    project_root = os.path.dirname(script_dir)
+                    tm1_bedrock_executor.execute_dimension_build_with_bedrock(
+                        tm1=tm1,
+                        dimension_name=dimension_name,
+                        csv_template=schema['dimensions'][template_type][dimension]['csv_template'],
+                        project_root=project_root
+                    )
             basic_logger.info(f" {dimension_name} is created.")
 
 @utility.log_exec_metrics

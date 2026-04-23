@@ -1,0 +1,27 @@
+code,parent_code,element_type,description,country,currency
+All Organization Units,,Consolidated,All Organization Units,,
+Group,All Organization Units,Consolidated,Group Entities,,
+EMEA,Group,Consolidated,EMEA Region,,
+Americas,Group,Consolidated,Americas Region,,
+APAC,Group,Consolidated,APAC Region,,
+Company01,EMEA,Numeric,Company 01,Germany,EUR
+Company02,EMEA,Numeric,Company 02,France,EUR
+Company03,EMEA,Numeric,Company 03,United Kingdom,GBP
+Company04,EMEA,Numeric,Company 04,Netherlands,EUR
+Company05,EMEA,Numeric,Company 05,Spain,EUR
+Company06,EMEA,Numeric,Company 06,Italy,EUR
+Company07,EMEA,Numeric,Company 07,Sweden,SEK
+Company08,EMEA,Numeric,Company 08,Switzerland,CHF
+Company09,EMEA,Numeric,Company 09,Poland,PLN
+Company10,EMEA,Numeric,Company 10,Belgium,EUR
+Company11,EMEA,Numeric,Company 11,Austria,EUR
+Company12,EMEA,Numeric,Company 12,Denmark,DKK
+Company13,EMEA,Numeric,Company 13,Norway,NOK
+Company14,Americas,Numeric,Company 14,USA,USD
+Company15,Americas,Numeric,Company 15,Canada,CAD
+Company16,Americas,Numeric,Company 16,Brazil,BRL
+Company17,Americas,Numeric,Company 17,Mexico,MXN
+Company18,Americas,Numeric,Company 18,Argentina,ARS
+Company19,APAC,Numeric,Company 19,Japan,JPY
+Company20,APAC,Numeric,Company 20,Australia,AUD
+Company21,APAC,Numeric,Company 21,Singapore,SGD
