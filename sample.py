@@ -17,7 +17,7 @@ def main():
 
     config_file = os.path.join(script_dir, 'config.ini')
 
-    tm1 = utility.tm1_connection(config_file, 'testbench3')
+    tm1 = utility.tm1_connection(config_file, 'testbench')
 
     _DEFAULT_DF_TO_CUBE_KWARGS = schema['config']['df_to_cube_default_kwargs']
 

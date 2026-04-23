@@ -1,0 +1,7 @@
+default: &defaults
+  name: "}AnalogicClientProperties"
+  dimensions: ["}Clients","}AnalogicClientProperties"]
+  rules: [""]
+
+ksAcademy:
+  <<: *defaults

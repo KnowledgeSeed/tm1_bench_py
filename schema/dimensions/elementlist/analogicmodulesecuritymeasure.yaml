@@ -1,0 +1,16 @@
+default: &defaults
+  dimension_name: "}AnalogicModuleSecurity Measure"
+  elements: [
+    {"name": "Total", "element_type": "Consolidated"},
+    {"name": "Read", "element_type": "Numeric"},
+    {"name": "Write", "element_type": "Numeric"},
+    {"name": "Admin", "element_type": "Numeric"},
+    {"name": "Value", "element_type": "Numeric"}]
+  edges:
+    - [ "Total", "Read", 1 ]
+    - [ "Total", "Write", 1 ]
+    - [ "Total", "Admin", 1 ]
+  attributes: []
+
+ksAcademy:
+  <<: *defaults

@@ -1,0 +1,14 @@
+default: &defaults
+  dimension_name: "}AnalogicClientProperties"
+  elements: [
+
+    {"name": "Password", "element_type": "String"},
+    {"name": "Salt", "element_type": "String"},
+    {"name": "Twofa", "element_type": "String"},
+    {"name": "DirectProxyAccessEnabled", "element_type": "Numeric"},
+    {"name": "AuthenticationEnabled", "element_type": "Numeric"}]
+  edges:
+  attributes: []
+
+ksAcademy:
+  <<: *defaults

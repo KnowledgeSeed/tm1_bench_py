@@ -1,0 +1,7 @@
+default: &defaults
+  name: "}AnalogicModuleSecurity"
+  dimensions: ["}AnalogicModule","}Groups", "}AnalogicModuleSecurity Measure"]
+  rules: [""]
+
+ksAcademy:
+  <<: *defaults

@@ -29,6 +29,8 @@ import:
     - PnL
     - Price
     - Sales
+    - AnalogicClientProperties
+    - AnalogicModuleSecurity
   dimensions:
     elementlist:
       - currency
@@ -47,6 +49,9 @@ import:
       - organizationunit
       - position
       - version
+      - analogicclientproperties
+      - analogicmodulesecuritymeasure
+      - analogicmodule
     df_templates:
       - account
       - customer
