@@ -35,6 +35,15 @@ pytest tests/test_csv_dimension_integration.py -k "test_name"
 python sample.py
 ```
 
+### Run the CLI
+```bash
+tm1-bench validate --schema schema/ --env default
+tm1-bench build --schema schema/ --env default
+tm1-bench build --schema schema/ --dry-run
+tm1-bench destroy --schema schema/ --env default
+tm1-bench generate-data --schema schema/ --dataset DatasetName
+```
+
 ### Integration tests (requires running TM1 Docker container)
 ```bash
 cd tests_integration && docker-compose up -d
@@ -111,6 +120,9 @@ When the user says **"review"**, **"wrap up"**, or **"wrap up the day"**:
 5. Confirm to the user what was updated.
 
 ### Skills to use
+- `/test-engineer` — coverage gap analysis, write missing tests, run suite, flag untested edge cases
+- `/architect` — code quality review (BLOCKER/MAJOR/MINOR/INFO), SOLID/coupling checks, blueprint maintenance
+- `/product-owner` — backlog curation, user stories, goal prioritisation, vision thinking, session wrap-up
 - `/review` — review a PR or branch before wrapping up
 - `/simplify` — check changed code for quality and reuse
 - `/security-review` — flag security concerns on current branch changes

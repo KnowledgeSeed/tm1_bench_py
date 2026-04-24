@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/test_cli_parser.py::test_validate_subcommand_parsed -v -s)"
+    ]
+  }
+}
