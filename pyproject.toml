@@ -10,4 +10,10 @@ description = "TM1 benchmark model generator for automated testing, performance 
 keywords=["TM1", "IBM Cognos TM1", "Planning Analytics", "PA", "Cognos"]
 
 [tool.setuptools.packages]
-find = {namespaces = false} 
+find = {namespaces = false}
+
+[project.scripts]
+tm1-bench = "tm1_bench_py.cli:main"
+
+[tool.pytest.ini_options]
+tmp_path_retention_policy = "failed"

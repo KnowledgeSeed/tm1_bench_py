@@ -43,6 +43,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt build
         python -m build
+        pip install -e .
+
+    - name: Validate schema (no TM1 required)
+      run: |
+        tm1-bench validate --schema ./schema --env default
 
     - name: Spin up TM1
       run: |
@@ -51,9 +56,13 @@ jobs:
         docker compose up -d 
         sleep 5
 
-    - name: Run sample.py
+    - name: Run CLI build
       run: |
-        python sample.py
+        tm1-bench build --schema ./schema --env default --connection testbench
+
+    - name: Verify CLI version
+      run: |
+        tm1-bench --version
     
     - name: Stop docker containers
       if: always()
